@@ -673,10 +673,11 @@ Execution Order:
 
 ### Execution Recommendations
 
-- **Use `/pm:issue-work` command**: Execute each guide with separate Claude instances:
-  - `/pm:issue-work {issue_number} interface` - Define contracts first
-  - `/pm:issue-work {issue_number} dev` - Implement against interfaces (parallel)
-  - `/pm:issue-work {issue_number} test` - Test using interfaces (parallel)
-- **Interface First**: Always complete interface definition before starting parallel dev/test work
-- **Agent Isolation**: Use different agents for dev and test to ensure independence
-- **Regular Interface Updates**: If interfaces change, update all three documents and notify teams
+- **Use `/pm:issue-work` command**: Execute the complete interface-first development workflow:
+  - `/pm:issue-work {issue_number}` - Complete implementation with interface-first parallel dev/test
+- **Automatic Workflow**: The command automatically handles:
+  - Phase 1: Interface contract definition and commit
+  - Phase 2: Parallel development and testing in separate worktrees with independent agents
+  - Phase 3: Integration testing and final merge
+- **Agent Isolation**: Built-in agent separation prevents cross-contamination between dev and test work
+- **Interface-First Development**: Contracts are defined first, then parallel implementation ensures consistency
