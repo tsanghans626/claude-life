@@ -26,6 +26,65 @@ Start working on a GitHub issue using traditional development workflow (no paral
    - If issue is assigned to someone else, ask user if they want to continue
    - If issue has "in-progress" label, warn about potential conflicts
 
+3. **Check and update local task status:**
+
+   ```bash
+   # Check GitHub issue status first
+   issue_state=$(gh issue view $ARGUMENTS --json state --jq '.state')
+   if [ "$issue_state" = "closed" ]; then
+     echo "⚠️ GitHub issue #$ARGUMENTS is closed. Updating local status..."
+
+     # Find the local task file
+     task_file=""
+     for epic_dir in .claude/epics/*/; do
+       if [ -f "$epic_dir/$ARGUMENTS.md" ]; then
+         task_file="$epic_dir/$ARGUMENTS.md"
+         break
+       fi
+     done
+
+     if [ -n "$task_file" ]; then
+       # Update task status to closed
+       current_datetime=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+       # Update frontmatter status and updated timestamp
+       sed -i '' "s/^status: .*/status: closed/" "$task_file"
+       sed -i '' "s/^updated: .*/updated: $current_datetime/" "$task_file"
+
+       echo "✅ Updated local task status to closed: $task_file"
+
+       # Update epic progress
+       epic_dir=$(dirname "$task_file")
+       bash .claude/scripts/pm/update-epic-progress.sh "$(basename "$epic_dir")"
+
+       echo "✅ Issue #$ARGUMENTS is already completed. Local files updated."
+       exit 0
+     else
+       echo "⚠️ GitHub issue is closed but no local task file found"
+     fi
+   fi
+
+   # If issue is open, ensure local task file status is also open
+   task_file=""
+   for epic_dir in .claude/epics/*/; do
+     if [ -f "$epic_dir/$ARGUMENTS.md" ]; then
+       task_file="$epic_dir/$ARGUMENTS.md"
+       break
+     fi
+   done
+
+   if [ -n "$task_file" ]; then
+     current_status=$(grep "^status:" "$task_file" | head -1 | sed 's/^status: *//')
+     if [ "$current_status" = "closed" ]; then
+       # Reopen local task if GitHub issue is open
+       current_datetime=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+       sed -i '' "s/^status: .*/status: open/" "$task_file"
+       sed -i '' "s/^updated: .*/updated: $current_datetime/" "$task_file"
+       echo "🔄 Reopened local task status to match GitHub issue"
+     fi
+   fi
+   ```
+
 ## Instructions
 
 ### 1. Setup Branch
@@ -95,7 +154,42 @@ EOF
 gh issue edit $ARGUMENTS --remove-label "in-progress"
 ```
 
-### 6. Output
+### 6. Post-Completion Status Update
+
+After creating the PR, check if work is fully complete and update local status:
+
+```bash
+# Check if all todos are completed
+if [ "all todos completed" ]; then
+  # Find the local task file
+  task_file=""
+  for epic_dir in .claude/epics/*/; do
+    if [ -f "$epic_dir/$ARGUMENTS.md" ]; then
+      task_file="$epic_dir/$ARGUMENTS.md"
+      break
+    fi
+  done
+
+  if [ -n "$task_file" ]; then
+    echo "🎯 All work completed. Updating local task status..."
+    current_datetime=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # Update task status to closed (work is done, waiting for PR merge)
+    sed -i '' "s/^status: .*/status: closed/" "$task_file"
+    sed -i '' "s/^updated: .*/updated: $current_datetime/" "$task_file"
+
+    echo "✅ Updated local task status to closed: $task_file"
+
+    # Update epic progress
+    epic_dir=$(dirname "$task_file")
+    bash .claude/scripts/pm/update-epic-progress.sh "$(basename "$epic_dir")"
+
+    echo "📊 Epic progress updated"
+  fi
+fi
+```
+
+### 7. Output
 
 ```
 ✅ Started work on issue #$ARGUMENTS: $TITLE
@@ -109,7 +203,8 @@ Begin implementation with first todo.
 
 When complete:
 - Push branch and create PR
-- Link PR to issue for auto-close
+- Local task status will be updated automatically
+- Epic progress will be recalculated
 ```
 
 ## Error Handling

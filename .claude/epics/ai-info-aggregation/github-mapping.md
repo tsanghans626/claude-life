@@ -3,6 +3,7 @@
 Epic: #1 - https://github.com/tsanghans626/claude-life/issues/1
 
 Tasks:
+
 - #10: Article List and Pagination - https://github.com/tsanghans626/claude-life/issues/10
 - #11: Background Job System - https://github.com/tsanghans626/claude-life/issues/11
 - #12: Article Cleanup Service - https://github.com/tsanghans626/claude-life/issues/12

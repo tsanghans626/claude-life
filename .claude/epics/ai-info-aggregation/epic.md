@@ -78,6 +78,7 @@ High-level task categories:
 - **错误恢复**: Graceful handling of network failures and invalid feeds
 
 ## Tasks Created
+
 - [ ] #10 - Article List and Pagination (parallel: false)
 - [ ] #11 - Background Job System (parallel: false)
 - [ ] #12 - Article Cleanup Service (parallel: true)
@@ -91,9 +92,10 @@ High-level task categories:
 - [ ] #8 - RSS Source Management UI (parallel: true)
 - [ ] #9 - Article Card Component (parallel: true)
 
-Total tasks:       12
-Parallel tasks:        5
+Total tasks: 12
+Parallel tasks: 5
 Sequential tasks: 7
+
 ## Estimated Effort
 
 - **总体时间**: 4-5 weeks for full implementation
