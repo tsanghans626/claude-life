@@ -59,9 +59,9 @@ Start working on a GitHub issue using traditional development workflow (no paral
    echo "📋 Using workflow documentation: $DOC_FILE"
    ```
 
-3. **Check if already assigned:**
-   - If issue is assigned to someone else, ask user if they want to continue
-   - If issue has "in-progress" label, warn about potential conflicts
+3. **Skip GitHub API calls:**
+   - Do not fetch issue details from GitHub API
+   - Use only local documentation and files
 
 4. **Check local task status:**
 
@@ -89,8 +89,8 @@ Start working on a GitHub issue using traditional development workflow (no paral
 ### 1. Setup Branch
 
 ```bash
-# Create branch name with work type suffix
-BRANCH_NAME="issue-$ISSUE_NUMBER-$WORK_TYPE-$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
+# Create simple branch name with work type suffix (no title needed)
+BRANCH_NAME="issue-$ISSUE_NUMBER-$WORK_TYPE"
 
 # Create and switch to feature branch
 git checkout -b "$BRANCH_NAME"
@@ -138,8 +138,8 @@ Before finishing:
 # Push branch
 git push -u origin HEAD
 
-# Create pull request title with work type
-PR_TITLE="Issue #$ISSUE_NUMBER [$WORK_TYPE]: $TITLE"
+# Create pull request title with work type (use issue number only)
+PR_TITLE="Issue #$ISSUE_NUMBER [$WORK_TYPE]"
 
 gh pr create --title "$PR_TITLE" --body "$(cat <<'EOF'
 ## Summary
@@ -206,12 +206,11 @@ fi
 ### 7. Output
 
 ```
-✅ Started work on issue #$ISSUE_NUMBER: $TITLE
+✅ Started work on issue #$ISSUE_NUMBER
 
 Work Type: {dev|test}
 Branch: {branch-name}
 Documentation: {epic_dir}/{issue}-{work_type}.md
-Assigned: @me
 Status: in-progress
 
 Todo list created with {count} tasks.
@@ -238,3 +237,6 @@ If any step fails, provide clear guidance:
 - Auto-links PR to issue for closure
 - Follows conventional commit message format
 - Validates changes before completion
+- **CRITICAL: Do not call `gh issue view` or any other GitHub API commands to fetch issue details**
+- Use only local documentation files ({issue}-{work_type}.md) for workflow instructions
+- Branch names and PR titles should use issue number only, not title from GitHub
