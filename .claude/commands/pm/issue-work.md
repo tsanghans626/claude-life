@@ -113,8 +113,11 @@ else
   cd - > /dev/null
 fi
 
-echo "🔄 Switch to worktree directory: cd $WORKTREE_DIR"
+# Get absolute path for all future operations
+WORKTREE_PATH="$(cd "$WORKTREE_DIR" && pwd)"
+echo "🎯 Worktree absolute path: $WORKTREE_PATH"
 echo "📝 This worktree is dedicated to $WORK_TYPE work on issue #$ISSUE_NUMBER"
+echo "⚠️  IMPORTANT: All file operations will use absolute paths due to shell directory reset behavior"
 
 # Assign issue to self and mark in-progress (only once, not per worktree)
 gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress"
@@ -138,39 +141,49 @@ echo "📋 Creating todos based on $WORK_TYPE workflow documentation"
 
 **CRITICAL: Complete ALL implementation work within this command execution. Do NOT instruct user to switch directories or start new Claude Code instances.**
 
+**IMPORTANT: All file operations must be performed with absolute paths relative to the WORKTREE_DIR since the shell resets working directory after each command.**
+
+```bash
+# Store the absolute worktree path for all operations
+WORKTREE_PATH="$(cd "$WORKTREE_DIR" && pwd)"
+echo "🎯 Working with absolute path: $WORKTREE_PATH"
+```
+
 For each todo:
 
-1. Mark as in_progress
-2. **Implement the complete feature/fix in the current session**
-3. Test the changes
-4. Mark as completed
+1. Mark as in_progress using TodoWrite
+2. **Implement the complete feature/fix using absolute file paths**
+3. Test the changes (all commands must cd to worktree first)
+4. Mark as completed using TodoWrite
 5. Commit with format: "Issue #$ISSUE_NUMBER[$WORK_TYPE]: {specific change}"
 
 **Implementation Requirements:**
 
+- ALL file operations (Read, Write, Edit, MultiEdit) must use absolute paths: `$WORKTREE_PATH/relative/path`
+- ALL bash commands must start with `cd "$WORKTREE_PATH" && ...`
 - Read all necessary files to understand existing codebase patterns
 - Create/modify all required files according to the workflow documentation
 - Follow existing code conventions and architecture
 - Implement complete, working solutions (no partial implementations)
-- Run validation commands (lint, typecheck) before completion
+- Run validation commands (lint, typecheck) before completion with: `cd "$WORKTREE_PATH" && pnpm lint`
 
 ### 4. Validation
 
-Before finishing:
+Before finishing (all commands must cd to worktree):
 
-- Run linting: `npm run lint` (if exists)
-- Run tests: `npm test` (if exists)
+```bash
+cd "$WORKTREE_PATH" && pnpm lint  # Run linting if exists
+cd "$WORKTREE_PATH" && pnpm test  # Run tests if exists
+```
+
 - Verify all acceptance criteria are met
 - Check that no breaking changes introduced
 
 ### 5. Completion
 
 ```bash
-# Ensure we're in the correct worktree
-cd "$WORKTREE_DIR"
-
-# Push branch
-git push -u origin HEAD
+# Ensure we're in the correct worktree and push branch
+cd "$WORKTREE_PATH" && git add . && git commit -m "Issue #$ISSUE_NUMBER[$WORK_TYPE]: Complete implementation" && git push -u origin HEAD
 
 # Create pull request title with work type (use issue number only)
 PR_TITLE="Issue #$ISSUE_NUMBER [$WORK_TYPE]"
