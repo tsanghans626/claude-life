@@ -4,59 +4,79 @@ allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, TodoWrite, Task
 
 # Issue Work
 
-Start working on a GitHub issue using worktree-based workflow for parallel dev/test environments.
+Complete implementation of a GitHub issue following interface-first development with parallel dev/test execution.
 
 ## Usage
 
 ```
-/pm:issue-work <issue_number> <dev|test>
+/pm:issue-work <issue_number>
 ```
 
 - `<issue_number>`: GitHub issue number
-- `<dev|test>` (required): Work type specification
-  - `dev`: Follow development workflow using `{issue}-dev.md` documentation
-  - `test`: Follow testing workflow using `{issue}-test.md` documentation
+
+**Execution Flow:**
+
+1. **Phase 1**: Implement interface contracts (`{issue}-interface.md`)
+2. **Phase 2**: Launch parallel dev and test agents in separate worktrees
+3. **Phase 3**: Merge worktrees and run comprehensive testing
 
 ## Quick Check
 
 1. **Parse arguments:**
 
    ```bash
-   ISSUE_NUMBER=$(echo "$ARGUMENTS" | cut -d' ' -f1)
-   WORK_TYPE=$(echo "$ARGUMENTS" | cut -d' ' -f2)
+   ISSUE_NUMBER="$ARGUMENTS"
 
-   # Validate that both parameters are provided
-   if [ -z "$ISSUE_NUMBER" ] || [ -z "$WORK_TYPE" ]; then
-     echo "❌ Both issue number and work type are required"
-     echo "Usage: /pm:issue-work <issue_number> <dev|test>"
+   # Validate issue number is provided
+   if [ -z "$ISSUE_NUMBER" ]; then
+     echo "❌ Issue number is required"
+     echo "Usage: /pm:issue-work <issue_number>"
      exit 1
    fi
 
-   # Validate work type
-   if [ "$WORK_TYPE" != "dev" ] && [ "$WORK_TYPE" != "test" ]; then
-     echo "❌ Invalid work type: $WORK_TYPE. Must be 'dev' or 'test'"
+   # Validate issue number is numeric
+   if ! [[ "$ISSUE_NUMBER" =~ ^[0-9]+$ ]]; then
+     echo "❌ Issue number must be numeric: $ISSUE_NUMBER"
      exit 1
    fi
    ```
 
-2. **Check work type documentation:**
+2. **Check required documentation files:**
 
    ```bash
-   # Find the documentation file in epics directory
-   DOC_FILE=""
+   # Find interface, dev, and test documentation files
+   INTERFACE_FILE=""
+   DEV_FILE=""
+   TEST_FILE=""
+
    for epic_dir in .claude/epics/*/; do
-     if [ -f "$epic_dir/${ISSUE_NUMBER}-${WORK_TYPE}.md" ]; then
-       DOC_FILE="$epic_dir/${ISSUE_NUMBER}-${WORK_TYPE}.md"
-       break
+     if [ -f "$epic_dir/${ISSUE_NUMBER}-interface.md" ]; then
+       INTERFACE_FILE="$epic_dir/${ISSUE_NUMBER}-interface.md"
+     fi
+     if [ -f "$epic_dir/${ISSUE_NUMBER}-dev.md" ]; then
+       DEV_FILE="$epic_dir/${ISSUE_NUMBER}-dev.md"
+     fi
+     if [ -f "$epic_dir/${ISSUE_NUMBER}-test.md" ]; then
+       TEST_FILE="$epic_dir/${ISSUE_NUMBER}-test.md"
      fi
    done
 
-   if [ -z "$DOC_FILE" ]; then
-     echo "❌ Documentation file not found: ${ISSUE_NUMBER}-${WORK_TYPE}.md"
-     echo "Please create the documentation file first in the appropriate epic directory."
+   # Validate all three files exist
+   missing_files=()
+   [ -z "$INTERFACE_FILE" ] && missing_files+=("${ISSUE_NUMBER}-interface.md")
+   [ -z "$DEV_FILE" ] && missing_files+=("${ISSUE_NUMBER}-dev.md")
+   [ -z "$TEST_FILE" ] && missing_files+=("${ISSUE_NUMBER}-test.md")
+
+   if [ ${#missing_files[@]} -gt 0 ]; then
+     echo "❌ Missing documentation files: ${missing_files[*]}"
+     echo "Please run /pm:issue-decompose $ISSUE_NUMBER first"
      exit 1
    fi
-   echo "📋 Using workflow documentation: $DOC_FILE"
+
+   echo "📋 Found documentation files:"
+   echo "   Interface: $INTERFACE_FILE"
+   echo "   Development: $DEV_FILE"
+   echo "   Testing: $TEST_FILE"
    ```
 
 3. **Skip GitHub API calls:**
@@ -69,10 +89,12 @@ Start working on a GitHub issue using worktree-based workflow for parallel dev/t
 
 ## Instructions
 
-### 1. Setup Branch
+### Phase 1: Interface Implementation
+
+#### 1.1 Setup Main Branch
 
 ```bash
-# Create simple branch name without work type suffix
+# Create simple branch name for issue
 BRANCH_NAME="issue-$ISSUE_NUMBER"
 
 # Check if branch exists, if not create it
@@ -81,70 +103,110 @@ if ! git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
   echo "✅ Created new branch: $BRANCH_NAME"
 else
   echo "ℹ️ Branch $BRANCH_NAME already exists"
+  git checkout "$BRANCH_NAME"
 fi
 
-# Create or switch to worktree based on work type
-WORKTREE_DIR="../${PWD##*/}-$WORK_TYPE"
+echo "🎯 Starting Phase 1: Interface Implementation"
+echo "📋 Interface Guide: $INTERFACE_FILE"
 
-if [ ! -d "$WORKTREE_DIR" ]; then
-  git worktree add "$WORKTREE_DIR" "$BRANCH_NAME"
-  echo "✅ Created worktree: $WORKTREE_DIR"
-else
-  echo "ℹ️ Worktree already exists: $WORKTREE_DIR"
-  # Ensure it's on the correct branch
-  cd "$WORKTREE_DIR" && git checkout "$BRANCH_NAME"
-  cd - > /dev/null
-fi
-
-# Get absolute path for all future operations
-WORKTREE_PATH="$(realpath "$WORKTREE_DIR")"
-echo "🎯 Worktree absolute path: $WORKTREE_PATH"
-echo "📝 This worktree is dedicated to $WORK_TYPE work on issue #$ISSUE_NUMBER"
-echo "⚠️  IMPORTANT: All file operations will use absolute paths due to shell directory reset behavior"
-
-# Export WORKTREE_PATH for use in all subsequent operations
-export WORKTREE_PATH
-
-# Assign issue to self and mark in-progress (only once, not per worktree)
-gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress"
+# Assign issue to self and mark in-progress
+gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress" || true
 ```
 
-### 2. Create Todo List
+#### 1.2 Implement Interface Contracts
 
-Use TodoWrite to create task breakdown:
+**CRITICAL: Complete ALL interface definition work in this phase. Do NOT proceed to Phase 2 until interfaces are fully defined.**
 
-- Parse the `{issue}-{work_type}.md` file for specific workflow instructions
-- Convert to actionable todos
-- Add testing and validation tasks
+Use TodoWrite to create interface tasks:
+
+- Parse the interface documentation file for contract requirements
+- Convert to actionable interface definition todos
+- Focus on type signatures, behavior contracts, and integration specs
 
 ```bash
-echo "📋 Creating todos based on $WORK_TYPE workflow documentation"
-# Read and parse the specific documentation file from epics directory
-# Found in $DOC_FILE variable from previous step
+echo "🔌 Phase 1: Implementing interface contracts"
+echo "📋 Reading interface guide: $INTERFACE_FILE"
 ```
 
-### 3. Work Implementation
+**Implementation Requirements:**
 
-**CRITICAL: Complete ALL implementation work within this command execution. Do NOT instruct user to switch directories or start new Claude Code instances.**
+- Create all TypeScript interfaces and type definitions
+- Define function signatures with input/output contracts
+- Specify error types and handling contracts
+- Define data schemas with validation rules
+- Document behavior contracts for each interface
+- NO IMPLEMENTATION CODE - only signatures and contracts
+
+#### 1.3 Commit Interface Contracts
+
+After completing interface definitions:
+
+```bash
+# Commit interface contracts to main branch
+git add .
+git commit -m "Issue #$ISSUE_NUMBER[interface]: Define contracts and type signatures
+
+🔌 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+echo "✅ Phase 1 Complete: Interface contracts defined and committed"
+```
+
+### Phase 2: Parallel Development and Testing
+
+#### 2.1 Setup Parallel Worktrees
+
+**CRITICAL: Create separate worktrees for development and testing to enable parallel work.**
 
 **IMPORTANT: All file operations must be performed with absolute paths relative to the WORKTREE_DIR since the shell resets working directory after each command.**
 
 ```bash
-# Ensure WORKTREE_PATH is available (should be set from step 1)
-if [ -z "$WORKTREE_PATH" ]; then
-  WORKTREE_PATH="$(realpath "../${PWD##*/}-$WORK_TYPE")"
-  export WORKTREE_PATH
-fi
-echo "🎯 Working with absolute path: $WORKTREE_PATH"
+# Create separate worktrees for dev and test work
+DEV_WORKTREE="../${PWD##*/}-dev"
+TEST_WORKTREE="../${PWD##*/}-test"
+
+# Clean up any existing worktrees
+git worktree remove "$DEV_WORKTREE" --force 2>/dev/null || true
+git worktree remove "$TEST_WORKTREE" --force 2>/dev/null || true
+
+# Create fresh worktrees from current branch (with interface contracts)
+git worktree add "$DEV_WORKTREE" "$BRANCH_NAME"
+git worktree add "$TEST_WORKTREE" "$BRANCH_NAME"
+
+# Get absolute paths
+DEV_PATH="$(realpath "$DEV_WORKTREE")"
+TEST_PATH="$(realpath "$TEST_WORKTREE")"
+
+echo "🎯 Phase 2: Parallel development setup complete"
+echo "   Development worktree: $DEV_PATH"
+echo "   Testing worktree: $TEST_PATH"
 ```
 
-For each todo:
+#### 2.2 Launch Parallel Development Agents
 
-1. Mark as in_progress using TodoWrite
-2. **Implement the complete feature/fix using absolute file paths**
-3. Test the changes (all commands must cd to worktree first)
-4. Mark as completed using TodoWrite
-5. Commit with format: "Issue #$ISSUE_NUMBER[$WORK_TYPE]: {specific change}"
+**CRITICAL: Use separate agents to avoid context contamination between development and testing.**
+
+Launch development agent:
+
+```bash
+echo "🚀 Launching development agent..."
+# Use Task tool to launch development agent with DEV_FILE
+```
+
+Launch testing agent (simultaneously):
+
+```bash
+echo "🧪 Launching testing agent..."
+# Use Task tool to launch testing agent with TEST_FILE
+```
+
+**Agent Requirements:**
+
+- **Development Agent**: Implement functions against interface contracts, no access to test code
+- **Testing Agent**: Write tests using interface contracts, no access to implementation
+- **Independent Work**: Each agent works in its own worktree with no shared context
+- **Interface Coordination**: Both agents use the same interface contracts for consistency
 
 **Implementation Requirements:**
 
@@ -154,51 +216,144 @@ For each todo:
 - ALL bash commands must start with `cd "$WORKTREE_PATH" && ...`
   - Example: `cd "$WORKTREE_PATH" && pnpm install fast-xml-parser`
   - Example: `cd "$WORKTREE_PATH/ai-info" && pnpm run lint`
-- Read all necessary files to understand existing codebase patterns
-- Create/modify all required files according to the workflow documentation
-- Follow existing code conventions and architecture
-- Implement complete, working solutions (no partial implementations)
-- Run validation commands (lint, typecheck) before completion with: `cd "$WORKTREE_PATH/ai-info" && pnpm lint`
 
-### 4. Validation
+### Phase 3: Merge and Integration Testing
 
-Before finishing (all commands must cd to worktree):
+#### 3.1 Wait for Parallel Completion
+
+**CRITICAL: Do not proceed until both development and testing agents have completed their work.**
 
 ```bash
-cd "$WORKTREE_PATH/ai-info" && pnpm lint  # Run linting if exists
-cd "$WORKTREE_PATH/ai-info" && pnpm test  # Run tests if exists
+echo "⏳ Waiting for parallel development and testing to complete..."
+echo "   Development agent should implement all interface contracts"
+echo "   Testing agent should create comprehensive test suites"
+echo "   Both agents should commit their changes to their respective worktrees"
 ```
 
-- Verify all acceptance criteria are met
-- Check that no breaking changes introduced
+#### 3.2 Merge Worktrees
 
-### 5. Completion
+**CRITICAL: Combine development and test work into the main branch.**
 
 ```bash
-# Ensure we're in the correct worktree and push branch
-cd "$WORKTREE_PATH" && git add . && git commit -m "Issue #$ISSUE_NUMBER[$WORK_TYPE]: Complete implementation" && git push -u origin HEAD
+echo "🔄 Phase 3: Merging development and test work"
 
-# Create pull request title with work type (use issue number only)
-PR_TITLE="Issue #$ISSUE_NUMBER [$WORK_TYPE]"
+# Switch to main branch
+git checkout "$BRANCH_NAME"
+
+# Merge development work
+echo "📥 Merging development implementation..."
+cd "$DEV_PATH"
+git add . && git commit -m "Issue #$ISSUE_NUMBER[dev]: Implementation complete" || true
+cd -
+git merge --no-ff -m "Merge development work from worktree" || {
+  echo "❌ Merge conflict in development work - manual resolution required"
+  exit 1
+}
+
+# Merge testing work
+echo "🧪 Merging test implementation..."
+cd "$TEST_PATH"
+git add . && git commit -m "Issue #$ISSUE_NUMBER[test]: Test suite complete" || true
+cd -
+git merge --no-ff -m "Merge testing work from worktree" || {
+  echo "❌ Merge conflict in testing work - manual resolution required"
+  exit 1
+}
+
+echo "✅ Worktrees merged successfully"
+```
+
+#### 3.3 Run Integration Tests
+
+**CRITICAL: Validate that implementation and tests work together.**
+
+```bash
+echo "🧪 Running comprehensive test suite..."
+
+# Run all tests with real data
+cd ai-info && pnpm test
+
+# Run linting and type checking
+cd ai-info && pnpm lint
+cd ai-info && pnpm typecheck || pnpm tsc --noEmit
+
+echo "✅ All validation passed"
+```
+
+#### 4.1 Clean Up Worktrees
+
+```bash
+echo "🧹 Cleaning up worktrees..."
+
+# Remove development and testing worktrees
+git worktree remove "$DEV_WORKTREE" --force || true
+git worktree remove "$TEST_WORKTREE" --force || true
+git worktree prune
+
+echo "✅ Worktrees cleaned up"
+```
+
+#### 4.2 Final Commit and PR Creation
+
+```bash
+# Final commit with all integrated work
+git add .
+git commit -m "Issue #$ISSUE_NUMBER: Complete implementation with interface-first development
+
+✅ Interface contracts defined
+✅ Implementation completed
+✅ Test suite implemented
+✅ Integration testing passed
+
+🔌 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# Push to origin
+git push -u origin HEAD
+
+# Create pull request
+PR_TITLE="Issue #$ISSUE_NUMBER: Interface-first development complete"
 
 gh pr create --title "$PR_TITLE" --body "$(cat <<'EOF'
 ## Summary
 
 Resolves #$ISSUE_NUMBER
 
-{Brief description of changes}
+Complete implementation using interface-first development methodology with parallel development and testing.
 
-## Work Type
+## Implementation Approach
 
-{dev|test workflow}
+**Phase 1 - Interface Definition:**
+- Defined TypeScript interfaces and contracts
+- Established behavior specifications
+- Created data schemas and validation rules
 
-## Changes Made
+**Phase 2 - Parallel Development:**
+- Development agent implemented functions against interface contracts
+- Testing agent created comprehensive test suites using interface contracts
+- Independent execution in separate worktrees to prevent cross-contamination
 
-{List key changes from todo completion}
+**Phase 3 - Integration:**
+- Merged development and testing work
+- Ran comprehensive integration tests with real data
+- Validated all functionality works together
 
-## Testing
+## Key Features
 
-{Testing approach and results}
+- Interface-first development ensures consistency
+- Real service integration (no mocking)
+- Comprehensive test coverage
+- Type-safe implementation
+- Independent development and testing
+
+## Testing Strategy
+
+- Unit tests for all interface implementations
+- Integration tests with real external services
+- End-to-end workflow validation
+- Error handling and edge case coverage
+- Performance validation
 
 Closes #$ISSUE_NUMBER
 EOF
@@ -206,6 +361,39 @@ EOF
 
 # Remove in-progress label, keep assignee
 gh issue edit $ISSUE_NUMBER --remove-label "in-progress"
+```
+
+### 5. Final Output
+
+```
+✅ Completed interface-first development for issue #$ISSUE_NUMBER
+
+Implementation Summary:
+═══════════════════════
+
+Phase 1 - Interface Definition:
+✅ TypeScript interfaces and contracts defined
+✅ Behavior specifications documented
+✅ Data schemas with validation created
+
+Phase 2 - Parallel Development:
+✅ Development agent implemented functionality
+✅ Testing agent created comprehensive tests
+✅ Independent execution prevented over-fitting
+
+Phase 3 - Integration:
+✅ Development and test work merged successfully
+✅ Integration tests passed with real data
+✅ All validation checks completed
+
+Final Status:
+- Branch: issue-{issue_number}
+- Pull Request: Created and ready for review
+- Tests: All passing with real data
+- Implementation: Complete and validated
+- Documentation: Interface contracts available
+
+Ready for code review and deployment!
 ```
 
 ### 6. Post-Completion Status Update
@@ -246,26 +434,27 @@ fi
 ### 7. Output
 
 ```
-✅ Completed work on issue #$ISSUE_NUMBER
+✅ Completed interface-first development on issue #$ISSUE_NUMBER
 
-Work Type: {dev|test}
+Methodology: Interface-First Development with Parallel Execution
 Branch: issue-{number}
-Implementation: COMPLETED in this session
-Documentation: {epic_dir}/{issue}-{work_type}.md
-Status: Ready for PR
+Implementation: COMPLETED with full integration
+Documentation: Interface + Development + Testing guides
+Status: Ready for code review
 
-Completed tasks:
-- {list of completed todos}
-- All files created/modified according to specifications
-- Validation passed (lint/typecheck)
-- Code ready for review
+Completed phases:
+- Phase 1: Interface contracts defined and committed
+- Phase 2: Parallel development and testing with independent agents
+- Phase 3: Integration testing with real services
+- All validation passed (lint/typecheck/tests)
+- Pull request created with comprehensive documentation
 
 Final status:
-- Branch pushed to origin
-- Pull request created
+- Branch pushed to origin with integrated work
+- Pull request created with detailed implementation summary
 - Local task status updated to closed
 - Epic progress recalculated
-- Ready for code review and testing
+- Ready for code review and deployment
 ```
 
 ## Error Handling
