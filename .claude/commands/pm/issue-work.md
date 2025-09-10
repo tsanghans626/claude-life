@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, TodoWrite, Task
 
 # Issue Work
 
-Start working on a GitHub issue using traditional development workflow (no parallel agents or worktrees).
+Start working on a GitHub issue using worktree-based workflow for parallel dev/test environments.
 
 ## Usage
 
@@ -89,13 +89,34 @@ Start working on a GitHub issue using traditional development workflow (no paral
 ### 1. Setup Branch
 
 ```bash
-# Create simple branch name with work type suffix (no title needed)
-BRANCH_NAME="issue-$ISSUE_NUMBER-$WORK_TYPE"
+# Create simple branch name without work type suffix
+BRANCH_NAME="issue-$ISSUE_NUMBER"
 
-# Create and switch to feature branch
-git checkout -b "$BRANCH_NAME"
+# Check if branch exists, if not create it
+if ! git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
+  git checkout -b "$BRANCH_NAME"
+  echo "✅ Created new branch: $BRANCH_NAME"
+else
+  echo "ℹ️ Branch $BRANCH_NAME already exists"
+fi
 
-# Assign issue to self and mark in-progress
+# Create or switch to worktree based on work type
+WORKTREE_DIR="../${PWD##*/}-$WORK_TYPE"
+
+if [ ! -d "$WORKTREE_DIR" ]; then
+  git worktree add "$WORKTREE_DIR" "$BRANCH_NAME"
+  echo "✅ Created worktree: $WORKTREE_DIR"
+else
+  echo "ℹ️ Worktree already exists: $WORKTREE_DIR"
+  # Ensure it's on the correct branch
+  cd "$WORKTREE_DIR" && git checkout "$BRANCH_NAME"
+  cd - > /dev/null
+fi
+
+echo "🔄 Switch to worktree directory: cd $WORKTREE_DIR"
+echo "📝 This worktree is dedicated to $WORK_TYPE work on issue #$ISSUE_NUMBER"
+
+# Assign issue to self and mark in-progress (only once, not per worktree)
 gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress"
 ```
 
@@ -135,6 +156,9 @@ Before finishing:
 ### 5. Completion
 
 ```bash
+# Ensure we're in the correct worktree
+cd "$WORKTREE_DIR"
+
 # Push branch
 git push -u origin HEAD
 
@@ -209,17 +233,27 @@ fi
 ✅ Started work on issue #$ISSUE_NUMBER
 
 Work Type: {dev|test}
-Branch: {branch-name}
+Branch: issue-{number} (no suffix)
+Worktree: ../{project}-{dev|test}
 Documentation: {epic_dir}/{issue}-{work_type}.md
 Status: in-progress
 
-Todo list created with {count} tasks.
-Begin implementation with first todo.
+Next steps:
+1. cd ../{project}-{work_type}  # Switch to dedicated worktree
+2. Start Claude Code instance in that directory
+3. Todo list will be created with {count} tasks
+4. Begin implementation
+
+Parallel work:
+- Dev instance: ../{project}-dev
+- Test instance: ../{project}-test
+- Both work on same branch: issue-{number}
 
 When complete:
 - Push branch and create PR
 - Local task status will be updated automatically
 - Epic progress will be recalculated
+- Clean up worktrees when no longer needed
 ```
 
 ## Error Handling
@@ -230,9 +264,43 @@ If any step fails, provide clear guidance:
 - Missing tools: "❌ gh CLI not found. Install: brew install gh"
 - Permission issues: "❌ Cannot assign issue. Check repository permissions"
 
+## Worktree Management
+
+### List Worktrees
+```bash
+git worktree list
+```
+
+### Remove Worktree (when done)
+```bash
+# Clean up dev worktree
+git worktree remove ../${PWD##*/}-dev
+
+# Clean up test worktree  
+git worktree remove ../${PWD##*/}-test
+
+# Prune deleted worktrees
+git worktree prune
+```
+
+### Switch Between Worktrees
+```bash
+# Go to dev environment
+cd ../${PWD##*/}-dev
+
+# Go to test environment
+cd ../${PWD##*/}-test
+
+# Back to main
+cd ../${PWD##*/}
+```
+
 ## Important Notes
 
-- No worktrees required - uses traditional git branching
+- Uses worktrees for parallel dev/test environments
+- Single branch without -dev/-test suffix
+- Multiple Claude Code instances can work simultaneously
+- Shared .git directory, separate working directories
 - TodoWrite helps track progress through acceptance criteria
 - Auto-links PR to issue for closure
 - Follows conventional commit message format
