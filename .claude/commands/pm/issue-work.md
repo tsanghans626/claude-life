@@ -97,10 +97,13 @@ else
 fi
 
 # Get absolute path for all future operations
-WORKTREE_PATH="$(cd "$WORKTREE_DIR" && pwd)"
+WORKTREE_PATH="$(realpath "$WORKTREE_DIR")"
 echo "🎯 Worktree absolute path: $WORKTREE_PATH"
 echo "📝 This worktree is dedicated to $WORK_TYPE work on issue #$ISSUE_NUMBER"
 echo "⚠️  IMPORTANT: All file operations will use absolute paths due to shell directory reset behavior"
+
+# Export WORKTREE_PATH for use in all subsequent operations
+export WORKTREE_PATH
 
 # Assign issue to self and mark in-progress (only once, not per worktree)
 gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress"
@@ -127,8 +130,11 @@ echo "📋 Creating todos based on $WORK_TYPE workflow documentation"
 **IMPORTANT: All file operations must be performed with absolute paths relative to the WORKTREE_DIR since the shell resets working directory after each command.**
 
 ```bash
-# Store the absolute worktree path for all operations
-WORKTREE_PATH="$(cd "$WORKTREE_DIR" && pwd)"
+# Ensure WORKTREE_PATH is available (should be set from step 1)
+if [ -z "$WORKTREE_PATH" ]; then
+  WORKTREE_PATH="$(realpath "../${PWD##*/}-$WORK_TYPE")"
+  export WORKTREE_PATH
+fi
 echo "🎯 Working with absolute path: $WORKTREE_PATH"
 ```
 
@@ -143,20 +149,24 @@ For each todo:
 **Implementation Requirements:**
 
 - ALL file operations (Read, Write, Edit, MultiEdit) must use absolute paths: `$WORKTREE_PATH/relative/path`
+  - Example: `Read file_path="$WORKTREE_PATH/ai-info/src/server/trpc.ts"`
+  - Example: `Write file_path="$WORKTREE_PATH/ai-info/src/services/rss/index.ts"`
 - ALL bash commands must start with `cd "$WORKTREE_PATH" && ...`
+  - Example: `cd "$WORKTREE_PATH" && pnpm install fast-xml-parser`
+  - Example: `cd "$WORKTREE_PATH/ai-info" && pnpm run lint`
 - Read all necessary files to understand existing codebase patterns
 - Create/modify all required files according to the workflow documentation
 - Follow existing code conventions and architecture
 - Implement complete, working solutions (no partial implementations)
-- Run validation commands (lint, typecheck) before completion with: `cd "$WORKTREE_PATH" && pnpm lint`
+- Run validation commands (lint, typecheck) before completion with: `cd "$WORKTREE_PATH/ai-info" && pnpm lint`
 
 ### 4. Validation
 
 Before finishing (all commands must cd to worktree):
 
 ```bash
-cd "$WORKTREE_PATH" && pnpm lint  # Run linting if exists
-cd "$WORKTREE_PATH" && pnpm test  # Run tests if exists
+cd "$WORKTREE_PATH/ai-info" && pnpm lint  # Run linting if exists
+cd "$WORKTREE_PATH/ai-info" && pnpm test  # Run tests if exists
 ```
 
 - Verify all acceptance criteria are met
