@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, LS
 
 # Issue Decompose
 
-Decompose an issue into separate development and testing documents that can be executed independently and simultaneously.
+Decompose an issue into separate interface, development and testing documents that can be executed independently and simultaneously.
 
 ## Usage
 
@@ -21,6 +21,7 @@ Decompose an issue into separate development and testing documents that can be e
 
 2. **Check for existing decomposition:**
    ```bash
+   test -f .claude/epics/*/$ARGUMENTS-interface.md && echo "⚠️ Interface guide already exists. Overwrite? (yes/no)"
    test -f .claude/epics/*/$ARGUMENTS-dev.md && echo "⚠️ Development guide already exists. Overwrite? (yes/no)"
    test -f .claude/epics/*/$ARGUMENTS-test.md && echo "⚠️ Testing guide already exists. Overwrite? (yes/no)"
    ```
@@ -55,7 +56,20 @@ Break down the issue into concrete development tasks:
 - What UI components are required?
 - What configuration changes are needed?
 
-### 3. Analyze Testing Requirements
+### 3. Analyze Interface Requirements
+
+Define the public API and contracts that will enable parallel development and testing:
+
+**Interface Considerations:**
+
+- What functions/methods need to be exposed?
+- What are the input/output types and schemas?
+- What are the expected behaviors and contracts?
+- What error conditions and handling are needed?
+- What data structures and models are involved?
+- What external dependencies and services are required?
+
+### 4. Analyze Testing Requirements
 
 Identify comprehensive testing needs:
 
@@ -70,7 +84,197 @@ Identify comprehensive testing needs:
 - Data validation tests
 - Error handling tests
 
-### 4. Create Development Guide
+### 5. Create Interface Guide
+
+Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
+
+Create `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`:
+
+````markdown
+---
+issue: $ARGUMENTS
+title: { issue_title }
+type: interface
+decomposed: { current_datetime }
+estimated_hours: { interface_design_hours }
+---
+
+# Interface Guide: Issue #$ARGUMENTS
+
+## Overview
+
+{Brief description of the interfaces and contracts that need to be defined}
+
+## Prerequisites
+
+- [ ] Local task file reviewed: `.claude/epics/{epic_name}/$ARGUMENTS.md`
+- [ ] GitHub issue understood: `gh issue view $ARGUMENTS`
+- [ ] Existing codebase patterns analyzed
+- [ ] Dependencies and integration points identified
+
+## Interface Design Tasks
+
+### Core Interface Definitions
+
+#### Interface 1: {Service/Component Name}
+
+**Description**: {What this interface does and why it's needed}
+**Files to create**:
+
+- `{file_path}` - {Interface definition file}
+- `{file_path}` - {Type definitions}
+
+**Interface Specification**:
+
+```typescript
+// Function signatures
+export interface {InterfaceName} {
+  {method1}({params}): {ReturnType}
+  {method2}({params}): Promise<{ReturnType}>
+}
+
+// Data types
+export interface {DataType} {
+  {field1}: {type}
+  {field2}: {type}
+}
+
+// Error types
+export interface {ErrorType} {
+  code: string
+  message: string
+  details?: {DetailType}
+}
+```
+````
+
+**Behavior Contract**:
+
+- **Input validation**: {validation rules}
+- **Output guarantees**: {what the function promises to return}
+- **Error conditions**: {when and how errors are thrown}
+- **Side effects**: {any state changes or external calls}
+
+**Dependencies**: {External interfaces or services required}
+**Estimated Hours**: {hours}
+**Priority**: High
+
+#### Interface 2: {Next Interface Name}
+
+**Description**: {Interface description}
+**Files to create**:
+
+- `{file_path}` - {description}
+
+**Interface Specification**:
+
+```typescript
+// Interface definitions
+```
+
+**Behavior Contract**:
+
+- {contract details}
+
+**Dependencies**: Interface 1
+**Estimated Hours**: {hours}
+**Priority**: High/Medium/Low
+
+### Data Schema Definitions
+
+#### Schema 1: {Database/API Schema Name}
+
+**Description**: {Data structure definition}
+**Files to create**:
+
+- `{schema_file}` - {Zod/Prisma/etc schema definition}
+
+**Schema Definition**:
+
+```typescript
+// Data validation schema
+export const {SchemaName} = z.object({
+  {field1}: z.{type}(),
+  {field2}: z.{type}(),
+})
+
+export type {TypeName} = z.infer<typeof {SchemaName}>
+```
+
+**Validation Rules**:
+
+- {field validation rules}
+- {business logic constraints}
+- {format requirements}
+
+**Usage Context**: {Where this schema is used}
+**Estimated Hours**: {hours}
+**Priority**: High
+
+## Integration Contracts
+
+### External Service Interfaces
+
+#### External Service 1: {Service Name}
+
+**Description**: {Integration requirements}
+**Interface Requirements**:
+
+- **Endpoints**: {API endpoints to integrate with}
+- **Authentication**: {auth requirements}
+- **Data Format**: {expected input/output format}
+- **Error Handling**: {how to handle service errors}
+
+**Mock Requirements**: None (real service integration only)
+**Estimated Hours**: {hours}
+**Priority**: Medium
+
+## Interface Dependencies
+
+### Interface Creation Flow
+
+1. **Core Data Types**: Define fundamental data structures first
+2. **Service Interfaces**: Define method signatures and contracts
+3. **Integration Contracts**: Define external service interfaces
+4. **Error Handling**: Define comprehensive error types and handling
+
+### Parallel Development Enablement
+
+- **Development Team**: Can implement against defined interfaces
+- **Testing Team**: Can write tests using interface contracts
+- **Integration Team**: Can work on service connections using contracts
+
+## Definition of Done
+
+### Interface Design Complete When:
+
+- [ ] All function signatures defined with TypeScript types
+- [ ] Input/output contracts specified with validation rules
+- [ ] Error conditions and types clearly defined
+- [ ] Data schemas created with validation
+- [ ] Integration contracts specified for external services
+- [ ] Interface documentation is comprehensive
+- [ ] No mock interfaces - all definitions are for real implementations
+
+## Development Handoff
+
+**Development Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`
+**Testing Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-test.md`
+
+### Handoff Requirements:
+
+- Interface files created but functions only contain type signatures
+- All types exported and available for import
+- Documentation includes usage examples
+- Contract specifications are detailed and unambiguous
+
+## Interface Notes
+
+{Special considerations for interface design, breaking changes, backwards compatibility, etc.}
+
+````
+
+### 6. Create Development Guide
 
 Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
@@ -94,9 +298,10 @@ estimated_hours: { development_hours }
 ## Prerequisites
 
 - [ ] Local task file reviewed: `.claude/epics/{epic_name}/$ARGUMENTS.md`
+- [ ] Interface specifications defined: `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`
 - [ ] GitHub issue understood: `gh issue view $ARGUMENTS`
 - [ ] Development environment set up
-- [ ] Dependencies identified
+- [ ] Interface contracts available for implementation
 
 ## Development Task List
 
@@ -173,11 +378,12 @@ estimated_hours: { development_hours }
 - [ ] Basic functionality verified
 - [ ] Ready for testing (see companion testing guide)
 
-## Testing Readiness
+## Testing Coordination
 
 - **Testing Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-test.md`
-- **Test Dependencies**: Development tasks must be completed before testing begins
-- **Parallel Work**: Testing team can prepare test cases while development is in progress
+- **Test-Driven Development**: Tests can be written based on specifications, not implementation
+- **Parallel Work**: Testing and development can proceed simultaneously once API interfaces are defined
+- **Continuous Integration**: Tests provide immediate feedback during development
 
 ## Development Notes
 
@@ -191,9 +397,9 @@ When development tasks are complete:
 2. Provide build/deployment instructions if needed
 3. Share any implementation details that affect testing
 4. Review testing guide together if needed
-```
+````
 
-### 5. Create Testing Guide
+### 7. Create Testing Guide
 
 Create `.claude/epics/{epic_name}/$ARGUMENTS-test.md`:
 
@@ -214,9 +420,10 @@ estimated_hours: { testing_hours }
 
 ## Prerequisites
 
-- [ ] Development guide reviewed: `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`
-- [ ] Understanding of implementation approach
-- [ ] Test environment set up
+- [ ] Interface contracts defined: `.claude/epics/{epic_name}/$ARGUMENTS-interface.md` (function signatures & behavior)
+- [ ] Development specifications understood: `.claude/epics/{epic_name}/$ARGUMENTS-dev.md` (implementation approach)
+- [ ] Testing strategy aligned with interface contracts
+- [ ] Test environment set up (independent of development completion)
 - [ ] Testing frameworks/tools available
 
 ## Testing Strategy
@@ -255,7 +462,7 @@ estimated_hours: { testing_hours }
 
 **Estimated Hours**: {hours}
 **Priority**: High
-**Dependencies**: Corresponding development task completed
+**Dependencies**: Function signatures and expected behavior defined (tests will initially fail until implementation)
 
 #### Test 2: {Next Component} Unit Tests
 
@@ -275,7 +482,7 @@ estimated_hours: { testing_hours }
 
 **Estimated Hours**: {hours}
 **Priority**: High/Medium/Low
-**Dependencies**: {corresponding dev task}
+**Dependencies**: Expected interface behavior defined (tests validate implementation against specifications)
 
 ### Integration Testing Tasks
 
@@ -300,7 +507,7 @@ estimated_hours: { testing_hours }
 
 **Estimated Hours**: {hours}
 **Priority**: High
-**Dependencies**: Multiple development tasks completed
+**Dependencies**: Component implementations available for real integration testing
 
 ### End-to-End Testing Tasks
 
@@ -325,22 +532,25 @@ estimated_hours: { testing_hours }
 
 **Estimated Hours**: {hours}
 **Priority**: Medium
-**Dependencies**: All development tasks completed
+**Dependencies**: Full feature implementation completed and deployed to test environment
 
 ## Testing Dependencies
 
 ### Testing Task Flow
 
-1. Unit tests can start as soon as corresponding dev tasks complete
-2. Integration tests require multiple dev tasks complete
-3. E2E tests require full feature implementation
-4. Performance/Security tests run after core functionality verified
+1. **Test-First Approach**: Unit tests written from specifications (will fail until implementation exists)
+2. **Red-Green-Refactor Cycle**: Tests fail (red) → implementation makes them pass (green) → refactor code
+3. **Integration Testing**: Requires actual component implementations to test real interactions
+4. **E2E Validation**: Requires fully implemented features for complete workflow testing
+5. **Performance/Security**: Requires stable implementations for meaningful validation
 
 ### Parallel Testing Opportunities
 
-- Unit tests for different components can run in parallel
-- Test case preparation can happen during development phase
-- Test environment setup can happen independently
+- **Interface-Based Testing**: Unit tests written from specifications, not implementations
+- **Test Case Design**: Write test logic based on specifications before implementation exists
+- **Test Infrastructure**: Setup testing frameworks and CI/CD pipelines immediately
+- **Test Data Preparation**: Create real test databases and fixtures independently
+- **Continuous Feedback**: Tests provide real-time validation during development
 
 ## Test Data Requirements
 
@@ -350,11 +560,11 @@ estimated_hours: { testing_hours }
 - {Sample data files}
 - {Database setup requirements}
 
-### Mock Services
+### Real Service Dependencies
 
-- {External services to mock}
-- {API endpoints to simulate}
-- {Error conditions to simulate}
+- {External services required for testing}
+- {API endpoints that need to be functional}
+- {Service setup requirements for test environment}
 
 ## Definition of Done
 
@@ -380,7 +590,7 @@ estimated_hours: { testing_hours }
 - **Blocking Issues**: Process for handling test-blocking development issues
 ```
 
-### 6. Validate Decomposition
+### 8. Validate Decomposition
 
 Ensure:
 
@@ -391,10 +601,14 @@ Ensure:
 - Time estimates are reasonable
 - Dependencies are clear
 
-### 7. Output
+### 9. Output
 
 ```
 ✅ Decomposition complete for issue #$ARGUMENTS
+
+🔌 Interface Guide: .claude/epics/{epic_name}/$ARGUMENTS-interface.md
+   Interface Tasks: {count}
+   Estimated hours: {interface_hours}h
 
 📋 Development Guide: .claude/epics/{epic_name}/$ARGUMENTS-dev.md
    Development Tasks: {count}
@@ -406,23 +620,41 @@ Ensure:
 
 Total estimated effort: {total_hours}h
 
+Key interfaces to be defined:
+  {list main interfaces}
+
 Key files to be modified:
   {list main files}
 
 Next Steps:
-- Development team: Start with development guide
-- Testing team: Review testing guide and prepare test cases
-- Both teams: Coordinate on dependencies and handoff points
+1. Interface team: Define contracts and type signatures first
+2. Development team: Implement against defined interfaces
+3. Testing team: Write tests using interface contracts
+4. All teams: Coordinate through interface documentation
 ```
 
 ## Important Notes
 
-- **Two separate documents** enable parallel development and testing work
-- **Development guide** focuses on implementation tasks and technical requirements
-- **Testing guide** focuses on verification, validation, and quality assurance
-- Both documents are local only - not synced to GitHub
+### TDD and Testing Philosophy
+
+- **No Mock Services**: All tests use real services and real data - no mocking allowed
+- **Test-First Development**: Unit tests can be written before implementation based on specifications
+- **Red-Green-Refactor**: Tests initially fail (red), implementation makes them pass (green), then refactor
+- **Real Dependencies**: Integration and E2E tests require actual implementations and services
+
+### Document Coordination
+
+- **Three separate documents** enable parallel interface, development and testing work
+- **Interface guide** defines contracts, types, and behavior specifications
+- **Development guide** focuses on implementation tasks against defined interfaces
+- **Testing guide** focuses on verification and validation using interface contracts and real systems
+- All documents are local only - not synced to GitHub
 - Documents cross-reference each other for coordination
-- Teams can work independently while maintaining alignment
+- Teams can work independently while maintaining alignment through shared interface contracts
+
+### Task Requirements
+
 - Focus on concrete, actionable tasks with clear deliverables
 - Include sufficient context for each task to be executed independently
 - Consider both happy path and error scenarios in testing
+- Specify real service dependencies and setup requirements
