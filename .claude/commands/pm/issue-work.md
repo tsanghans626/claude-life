@@ -9,36 +9,69 @@ Start working on a GitHub issue using traditional development workflow (no paral
 ## Usage
 
 ```
-/pm:issue-work <issue_number>
+/pm:issue-work <issue_number> [dev|test]
 ```
+
+- `<issue_number>`: GitHub issue number
+- `[dev|test]` (optional): Work type specification
+  - `dev`: Follow development workflow using `{issue}-dev.md` documentation
+  - `test`: Follow testing workflow using `{issue}-test.md` documentation
+  - If not specified: Use default workflow with original issue
 
 ## Quick Check
 
-1. **Get issue details:**
+1. **Parse arguments:**
 
    ```bash
-   gh issue view $ARGUMENTS --json state,title,labels,body
+   ISSUE_NUMBER=$(echo "$ARGUMENTS" | cut -d' ' -f1)
+   WORK_TYPE=$(echo "$ARGUMENTS" | cut -d' ' -f2)
+   
+   # Validate work type if provided
+   if [ -n "$WORK_TYPE" ] && [ "$WORK_TYPE" != "dev" ] && [ "$WORK_TYPE" != "test" ]; then
+     echo "❌ Invalid work type: $WORK_TYPE. Must be 'dev' or 'test'"
+     exit 1
+   fi
    ```
 
-   If it fails: "❌ Cannot access issue #$ARGUMENTS. Check number or run: gh auth login"
+2. **Get issue details:**
 
-2. **Check if already assigned:**
+   ```bash
+   gh issue view $ISSUE_NUMBER --json state,title,labels,body
+   ```
+
+   If it fails: "❌ Cannot access issue #$ISSUE_NUMBER. Check number or run: gh auth login"
+
+3. **Check work type documentation:**
+
+   ```bash
+   if [ -n "$WORK_TYPE" ]; then
+     DOC_FILE=".claude/tasks/${ISSUE_NUMBER}-${WORK_TYPE}.md"
+     if [ ! -f "$DOC_FILE" ]; then
+       echo "❌ Documentation file not found: $DOC_FILE"
+       echo "Please create the documentation file first."
+       exit 1
+     fi
+     echo "📋 Using workflow documentation: $DOC_FILE"
+   fi
+   ```
+
+4. **Check if already assigned:**
    - If issue is assigned to someone else, ask user if they want to continue
    - If issue has "in-progress" label, warn about potential conflicts
 
-3. **Check and update local task status:**
+5. **Check and update local task status:**
 
    ```bash
    # Check GitHub issue status first
-   issue_state=$(gh issue view $ARGUMENTS --json state --jq '.state')
+   issue_state=$(gh issue view $ISSUE_NUMBER --json state --jq '.state')
    if [ "$issue_state" = "closed" ]; then
-     echo "⚠️ GitHub issue #$ARGUMENTS is closed. Updating local status..."
+     echo "⚠️ GitHub issue #$ISSUE_NUMBER is closed. Updating local status..."
 
      # Find the local task file
      task_file=""
      for epic_dir in .claude/epics/*/; do
-       if [ -f "$epic_dir/$ARGUMENTS.md" ]; then
-         task_file="$epic_dir/$ARGUMENTS.md"
+       if [ -f "$epic_dir/$ISSUE_NUMBER.md" ]; then
+         task_file="$epic_dir/$ISSUE_NUMBER.md"
          break
        fi
      done
@@ -57,7 +90,7 @@ Start working on a GitHub issue using traditional development workflow (no paral
        epic_dir=$(dirname "$task_file")
        bash .claude/scripts/pm/update-epic-progress.sh "$(basename "$epic_dir")"
 
-       echo "✅ Issue #$ARGUMENTS is already completed. Local files updated."
+       echo "✅ Issue #$ISSUE_NUMBER is already completed. Local files updated."
        exit 0
      else
        echo "⚠️ GitHub issue is closed but no local task file found"
@@ -67,8 +100,8 @@ Start working on a GitHub issue using traditional development workflow (no paral
    # If issue is open, ensure local task file status is also open
    task_file=""
    for epic_dir in .claude/epics/*/; do
-     if [ -f "$epic_dir/$ARGUMENTS.md" ]; then
-       task_file="$epic_dir/$ARGUMENTS.md"
+     if [ -f "$epic_dir/$ISSUE_NUMBER.md" ]; then
+       task_file="$epic_dir/$ISSUE_NUMBER.md"
        break
      fi
    done
@@ -90,20 +123,39 @@ Start working on a GitHub issue using traditional development workflow (no paral
 ### 1. Setup Branch
 
 ```bash
+# Create branch name with work type suffix if specified
+if [ -n "$WORK_TYPE" ]; then
+  BRANCH_NAME="issue-$ISSUE_NUMBER-$WORK_TYPE-$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
+else
+  BRANCH_NAME="issue-$ISSUE_NUMBER-$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
+fi
+
 # Create and switch to feature branch
-git checkout -b "issue-$ARGUMENTS-$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')"
+git checkout -b "$BRANCH_NAME"
 
 # Assign issue to self and mark in-progress
-gh issue edit $ARGUMENTS --add-assignee @me --add-label "in-progress"
+gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress"
 ```
 
 ### 2. Create Todo List
 
-Use TodoWrite to create task breakdown from issue acceptance criteria:
+Use TodoWrite to create task breakdown:
 
-- Parse issue body for acceptance criteria (- [ ] items)
+- If work type specified: Parse the `{issue}-{work_type}.md` file for specific workflow instructions
+- Otherwise: Parse issue body for acceptance criteria (- [ ] items)
 - Convert to actionable todos
 - Add testing and validation tasks
+
+```bash
+if [ -n "$WORK_TYPE" ]; then
+  echo "📋 Creating todos based on $WORK_TYPE workflow documentation"
+  # Read and parse the specific documentation file
+  # .claude/tasks/${ISSUE_NUMBER}-${WORK_TYPE}.md
+else
+  echo "📋 Creating todos from issue acceptance criteria"
+  # Parse issue body as before
+fi
+```
 
 ### 3. Work Implementation
 
@@ -113,7 +165,7 @@ For each todo:
 2. Implement the feature/fix
 3. Test the changes
 4. Mark as completed
-5. Commit with format: "Issue #$ARGUMENTS: {specific change}"
+5. Commit with format: "Issue #$ISSUE_NUMBER[$WORK_TYPE]: {specific change}" (or "Issue #$ISSUE_NUMBER: {specific change}" if no work type)
 
 ### 4. Validation
 
@@ -130,13 +182,23 @@ Before finishing:
 # Push branch
 git push -u origin HEAD
 
-# Create pull request
-gh pr create --title "Issue #$ARGUMENTS: $TITLE" --body "$(cat <<'EOF'
+# Create pull request title with work type if specified
+if [ -n "$WORK_TYPE" ]; then
+  PR_TITLE="Issue #$ISSUE_NUMBER [$WORK_TYPE]: $TITLE"
+else
+  PR_TITLE="Issue #$ISSUE_NUMBER: $TITLE"
+fi
+
+gh pr create --title "$PR_TITLE" --body "$(cat <<'EOF'
 ## Summary
 
-Resolves #$ARGUMENTS
+Resolves #$ISSUE_NUMBER
 
 {Brief description of changes}
+
+## Work Type
+
+{dev|test workflow if applicable}
 
 ## Changes Made
 
@@ -146,12 +208,12 @@ Resolves #$ARGUMENTS
 
 {Testing approach and results}
 
-Closes #$ARGUMENTS
+Closes #$ISSUE_NUMBER
 EOF
 )"
 
 # Remove in-progress label, keep assignee
-gh issue edit $ARGUMENTS --remove-label "in-progress"
+gh issue edit $ISSUE_NUMBER --remove-label "in-progress"
 ```
 
 ### 6. Post-Completion Status Update
@@ -164,8 +226,8 @@ if [ "all todos completed" ]; then
   # Find the local task file
   task_file=""
   for epic_dir in .claude/epics/*/; do
-    if [ -f "$epic_dir/$ARGUMENTS.md" ]; then
-      task_file="$epic_dir/$ARGUMENTS.md"
+    if [ -f "$epic_dir/$ISSUE_NUMBER.md" ]; then
+      task_file="$epic_dir/$ISSUE_NUMBER.md"
       break
     fi
   done
@@ -192,9 +254,11 @@ fi
 ### 7. Output
 
 ```
-✅ Started work on issue #$ARGUMENTS: $TITLE
+✅ Started work on issue #$ISSUE_NUMBER: $TITLE
 
-Branch: issue-$ARGUMENTS-{sanitized-title}
+Work Type: {dev|test|default}
+Branch: {branch-name}
+Documentation: {.claude/tasks/{issue}-{work_type}.md if applicable}
 Assigned: @me
 Status: in-progress
 
