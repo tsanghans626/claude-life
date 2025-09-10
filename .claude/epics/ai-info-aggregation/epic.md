@@ -4,7 +4,7 @@ status: backlog
 created: 2025-09-10T03:03:51Z
 progress: 0%
 prd: .claude/prds/ai-info-aggregation.md
-github: [Will be updated when synced to GitHub]
+github: https://github.com/tsanghans626/claude-life/issues/1
 ---
 
 # Epic: AI Info Aggregation
@@ -78,25 +78,22 @@ High-level task categories:
 - **错误恢复**: Graceful handling of network failures and invalid feeds
 
 ## Tasks Created
+- [ ] #10 - Article List and Pagination (parallel: false)
+- [ ] #11 - Background Job System (parallel: false)
+- [ ] #12 - Article Cleanup Service (parallel: true)
+- [ ] #13 - Integration Testing Suite (parallel: false)
+- [ ] #2 - Database Schema Design (parallel: true)
+- [ ] #3 - RSS Source Management API (parallel: false)
+- [ ] #4 - Article Storage Schema (parallel: false)
+- [ ] #5 - RSS Parser Service (parallel: true)
+- [ ] #6 - RSS Fetching Service (parallel: false)
+- [ ] #7 - Content Deduplication Logic (parallel: false)
+- [ ] #8 - RSS Source Management UI (parallel: true)
+- [ ] #9 - Article Card Component (parallel: true)
 
-- [ ] 001.md - Database Schema Design (parallel: true)
-- [ ] 002.md - RSS Source Management API (parallel: false)
-- [ ] 003.md - Article Storage Schema (parallel: false)
-- [ ] 004.md - RSS Parser Service (parallel: true)
-- [ ] 005.md - RSS Fetching Service (parallel: false)
-- [ ] 006.md - Content Deduplication Logic (parallel: false)
-- [ ] 007.md - RSS Source Management UI (parallel: true)
-- [ ] 008.md - Article Card Component (parallel: true)
-- [ ] 009.md - Article List and Pagination (parallel: false)
-- [ ] 010.md - Background Job System (parallel: false)
-- [ ] 011.md - Article Cleanup Service (parallel: true)
-- [ ] 012.md - Integration Testing Suite (parallel: false)
-
-**Total tasks**: 12
-**Parallel tasks**: 5 (001, 004, 007, 008, 011)
-**Sequential tasks**: 7 (002, 003, 005, 006, 009, 010, 012)
-**Estimated total effort**: 140-180 hours (4-5 weeks)
-
+Total tasks:       12
+Parallel tasks:        5
+Sequential tasks: 7
 ## Estimated Effort
 
 - **总体时间**: 4-5 weeks for full implementation
