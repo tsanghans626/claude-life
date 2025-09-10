@@ -136,13 +136,23 @@ echo "📋 Creating todos based on $WORK_TYPE workflow documentation"
 
 ### 3. Work Implementation
 
+**CRITICAL: Complete ALL implementation work within this command execution. Do NOT instruct user to switch directories or start new Claude Code instances.**
+
 For each todo:
 
 1. Mark as in_progress
-2. Implement the feature/fix
+2. **Implement the complete feature/fix in the current session**
 3. Test the changes
 4. Mark as completed
 5. Commit with format: "Issue #$ISSUE_NUMBER[$WORK_TYPE]: {specific change}"
+
+**Implementation Requirements:**
+
+- Read all necessary files to understand existing codebase patterns
+- Create/modify all required files according to the workflow documentation
+- Follow existing code conventions and architecture
+- Implement complete, working solutions (no partial implementations)
+- Run validation commands (lint, typecheck) before completion
 
 ### 4. Validation
 
@@ -230,30 +240,26 @@ fi
 ### 7. Output
 
 ```
-✅ Started work on issue #$ISSUE_NUMBER
+✅ Completed work on issue #$ISSUE_NUMBER
 
 Work Type: {dev|test}
-Branch: issue-{number} (no suffix)
-Worktree: ../{project}-{dev|test}
+Branch: issue-{number}
+Implementation: COMPLETED in this session
 Documentation: {epic_dir}/{issue}-{work_type}.md
-Status: in-progress
+Status: Ready for PR
 
-Next steps:
-1. cd ../{project}-{work_type}  # Switch to dedicated worktree
-2. Start Claude Code instance in that directory
-3. Todo list will be created with {count} tasks
-4. Begin implementation
+Completed tasks:
+- {list of completed todos}
+- All files created/modified according to specifications
+- Validation passed (lint/typecheck)
+- Code ready for review
 
-Parallel work:
-- Dev instance: ../{project}-dev
-- Test instance: ../{project}-test
-- Both work on same branch: issue-{number}
-
-When complete:
-- Push branch and create PR
-- Local task status will be updated automatically
-- Epic progress will be recalculated
-- Clean up worktrees when no longer needed
+Final status:
+- Branch pushed to origin
+- Pull request created
+- Local task status updated to closed
+- Epic progress recalculated
+- Ready for code review and testing
 ```
 
 ## Error Handling
@@ -267,16 +273,18 @@ If any step fails, provide clear guidance:
 ## Worktree Management
 
 ### List Worktrees
+
 ```bash
 git worktree list
 ```
 
 ### Remove Worktree (when done)
+
 ```bash
 # Clean up dev worktree
 git worktree remove ../${PWD##*/}-dev
 
-# Clean up test worktree  
+# Clean up test worktree
 git worktree remove ../${PWD##*/}-test
 
 # Prune deleted worktrees
@@ -284,6 +292,7 @@ git worktree prune
 ```
 
 ### Switch Between Worktrees
+
 ```bash
 # Go to dev environment
 cd ../${PWD##*/}-dev
