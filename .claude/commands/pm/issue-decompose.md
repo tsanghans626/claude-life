@@ -240,9 +240,12 @@ export type {TypeName} = z.infer<typeof {SchemaName}>
 
 ### Parallel Development Enablement
 
-- **Development Team**: Can implement against defined interfaces
-- **Testing Team**: Can write tests using interface contracts
-- **Integration Team**: Can work on service connections using contracts
+Once interfaces are defined, teams work simultaneously:
+
+- **Development Team**: Implements functions against defined interfaces (Red-Green-Refactor cycle)
+- **Testing Team**: Writes tests using interface contracts (tests initially fail until implementation)
+- **Integration Team**: Sets up service connections using interface contracts
+- **All Teams**: Coordinate through shared interface documentation, not through waiting
 
 ## Definition of Done
 
@@ -594,12 +597,13 @@ estimated_hours: { testing_hours }
 
 Ensure:
 
-- All major development work is broken into concrete tasks
-- Testing coverage is comprehensive
-- File paths are specific and accurate
-- Context requirements are detailed
-- Time estimates are reasonable
-- Dependencies are clear
+- **Interface contracts** are complete with clear function signatures and behavior specifications
+- **Development work** is broken into concrete tasks that implement against interfaces
+- **Testing coverage** is comprehensive and tests interface contracts, not implementations
+- **File paths** are specific and accurate across all three guides
+- **Context requirements** are detailed for independent execution
+- **Time estimates** are reasonable for each phase (interface → parallel dev+test)
+- **Dependencies** are clear with proper interface-first sequencing
 
 ### 9. Output
 
@@ -626,11 +630,12 @@ Key interfaces to be defined:
 Key files to be modified:
   {list main files}
 
-Next Steps:
-1. Interface team: Define contracts and type signatures first
-2. Development team: Implement against defined interfaces
-3. Testing team: Write tests using interface contracts
-4. All teams: Coordinate through interface documentation
+Execution Order:
+1. **Phase 1 - Interface Definition**: Define contracts and type signatures first
+2. **Phase 2 - Parallel Development**: Once interfaces are defined:
+   - Development team: Implement against defined interfaces
+   - Testing team: Write tests using interface contracts (simultaneously)
+3. **Coordination**: All teams sync through shared interface documentation
 ```
 
 ## Important Notes
@@ -641,6 +646,13 @@ Next Steps:
 - **Test-First Development**: Unit tests can be written before implementation based on specifications
 - **Red-Green-Refactor**: Tests initially fail (red), implementation makes them pass (green), then refactor
 - **Real Dependencies**: Integration and E2E tests require actual implementations and services
+
+### Agent Independence
+
+- **Separate Agent Execution**: Use different Claude agents for dev and test work to avoid cross-contamination
+- **Interface-Only Coordination**: Agents communicate only through shared interface contracts, not implementation details
+- **No Context Sharing**: Dev agents don't see test code, test agents don't see implementation code
+- **Prevent Overfitting**: Independent execution ensures tests truly validate behavior, not implementation specifics
 
 ### Document Coordination
 
@@ -658,3 +670,13 @@ Next Steps:
 - Include sufficient context for each task to be executed independently
 - Consider both happy path and error scenarios in testing
 - Specify real service dependencies and setup requirements
+
+### Execution Recommendations
+
+- **Use `/pm:issue-work` command**: Execute each guide with separate Claude instances:
+  - `/pm:issue-work {issue_number} interface` - Define contracts first
+  - `/pm:issue-work {issue_number} dev` - Implement against interfaces (parallel)
+  - `/pm:issue-work {issue_number} test` - Test using interfaces (parallel)
+- **Interface First**: Always complete interface definition before starting parallel dev/test work
+- **Agent Isolation**: Use different agents for dev and test to ensure independence
+- **Regular Interface Updates**: If interfaces change, update all three documents and notify teams
