@@ -77,6 +77,26 @@ High-level task categories:
 - **数据一致性**: No article duplicates, accurate read/unread state
 - **错误恢复**: Graceful handling of network failures and invalid feeds
 
+## Tasks Created
+
+- [ ] 001.md - Database Schema Design (parallel: true)
+- [ ] 002.md - RSS Source Management API (parallel: false)
+- [ ] 003.md - Article Storage Schema (parallel: false)
+- [ ] 004.md - RSS Parser Service (parallel: true)
+- [ ] 005.md - RSS Fetching Service (parallel: false)
+- [ ] 006.md - Content Deduplication Logic (parallel: false)
+- [ ] 007.md - RSS Source Management UI (parallel: true)
+- [ ] 008.md - Article Card Component (parallel: true)
+- [ ] 009.md - Article List and Pagination (parallel: false)
+- [ ] 010.md - Background Job System (parallel: false)
+- [ ] 011.md - Article Cleanup Service (parallel: true)
+- [ ] 012.md - Integration Testing Suite (parallel: false)
+
+**Total tasks**: 12
+**Parallel tasks**: 5 (001, 004, 007, 008, 011)
+**Sequential tasks**: 7 (002, 003, 005, 006, 009, 010, 012)
+**Estimated total effort**: 140-180 hours (4-5 weeks)
+
 ## Estimated Effort
 
 - **总体时间**: 4-5 weeks for full implementation
