@@ -84,9 +84,11 @@ Identify comprehensive testing needs:
 - Data validation tests
 - Error handling tests
 
-### 5. Create Interface Guide
+### 5. Create Interface Guide and Implement Interface Code
 
 Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
+
+**CRITICAL: This step includes both documentation AND code implementation**
 
 Create `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`:
 
@@ -277,6 +279,86 @@ Once interfaces are defined, teams work simultaneously:
 
 ````
 
+#### 5.1. Implement Interface Code
+
+**CRITICAL: After creating the interface guide documentation, immediately implement the actual interface code files**
+
+For each interface file specified in the interface guide:
+
+1. **Read the interface specifications** from the just-created interface guide
+2. **Create the actual TypeScript interface files** with:
+   - All interface definitions from the specifications
+   - All type definitions and exports
+   - All Zod validation schemas
+   - Function signatures (empty implementations - just signatures)
+   - Error type definitions
+   - All exports properly defined
+
+3. **Follow these implementation rules**:
+   - **NO IMPLEMENTATION LOGIC** - only type signatures, interfaces, and schemas
+   - All functions should have type signatures but empty implementations: `throw new Error("Not implemented")`
+   - All interfaces must be exported
+   - All types must be exported
+   - All schemas must be exported and validated
+   - File structure must match exactly what's specified in the interface guide
+
+4. **Validate the interface implementation**:
+   - Ensure all files compile without TypeScript errors
+   - Ensure all exports are accessible
+   - Ensure Zod schemas validate correctly
+   - Run type checking: `cd ai-info && pnpm tsc --noEmit`
+
+5. **Commit the interface implementation**:
+   ```bash
+   git add .
+   git commit -m "Issue #$ARGUMENTS[interface]: Define contracts and type signatures
+
+   🤖 Generated with [Claude Code](https://claude.ai/code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
+**Example Implementation Structure**:
+For interface guide specifying `ai-info/src/services/rss/types.ts`:
+
+```typescript
+// Feed format detection
+export type FeedFormat = "rss" | "atom" | "unknown";
+
+// Normalized article output structure
+export interface ParsedArticle {
+  title: string;
+  description: string | null;
+  link: string;
+  publishedAt: Date | null;
+  author: string | null;
+  guid: string | null;
+  content: string | null;
+}
+
+// Parser service interface
+export interface RSSParserService {
+  parseFeed(xmlContent: string): Promise<ParsedFeedResult>;
+  detectFeedFormat(xmlContent: string): FeedFormat;
+  validateFeed(xmlContent: string): FeedValidationResult;
+}
+
+// Implementation placeholder
+export class RSSParser implements RSSParserService {
+  async parseFeed(xmlContent: string): Promise<ParsedFeedResult> {
+    throw new Error("Not implemented");
+  }
+
+  detectFeedFormat(xmlContent: string): FeedFormat {
+    throw new Error("Not implemented");
+  }
+
+  validateFeed(xmlContent: string): FeedValidationResult {
+    throw new Error("Not implemented");
+  }
+}
+```
+
 ### 6. Create Development Guide
 
 Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
@@ -290,6 +372,7 @@ title: { issue_title }
 type: development
 decomposed: { current_datetime }
 estimated_hours: { development_hours }
+status: pending
 ---
 
 # Development Guide: Issue #$ARGUMENTS
@@ -302,6 +385,7 @@ estimated_hours: { development_hours }
 
 - [ ] Local task file reviewed: `.claude/epics/{epic_name}/$ARGUMENTS.md`
 - [ ] Interface specifications defined: `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`
+- [ ] **Interface code already implemented**: Type signatures and empty implementations available
 - [ ] GitHub issue understood: `gh issue view $ARGUMENTS`
 - [ ] Development environment set up
 - [ ] Interface contracts available for implementation
@@ -413,6 +497,7 @@ title: { issue_title }
 type: testing
 decomposed: { current_datetime }
 estimated_hours: { testing_hours }
+status: pending
 ---
 
 # Testing Guide: Issue #$ARGUMENTS
