@@ -63,26 +63,9 @@ Start working on a GitHub issue using worktree-based workflow for parallel dev/t
    - Do not fetch issue details from GitHub API
    - Use only local documentation and files
 
-4. **Check local task status:**
-
-   ```bash
-   # Find the local task file
-   task_file=""
-   for epic_dir in .claude/epics/*/; do
-     if [ -f "$epic_dir/$ISSUE_NUMBER.md" ]; then
-       task_file="$epic_dir/$ISSUE_NUMBER.md"
-       break
-     fi
-   done
-
-   if [ -n "$task_file" ]; then
-     current_status=$(grep "^status:" "$task_file" | head -1 | sed 's/^status: *//')
-     if [ "$current_status" = "closed" ]; then
-       echo "⚠️ Local task #$ISSUE_NUMBER is marked as closed."
-       echo "Continue anyway to reopen and work on it? (y/n)"
-     fi
-   fi
-   ```
+4. **Ready to proceed:**
+   - All validation checks passed
+   - Documentation file found and ready to use
 
 ## Instructions
 
