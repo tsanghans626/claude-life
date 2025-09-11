@@ -1,10 +1,10 @@
 ---
-allowed-tools: Bash, Read, Write, LS
+allowed-tools: Bash, Read, Write, LS, Glob, Grep, Edit
 ---
 
 # Issue Decompose
 
-Decompose an issue into separate interface, development and testing documents that can be executed independently and simultaneously.
+Decompose an issue into interface code, development guide, and testing guide.
 
 ## Usage
 
@@ -21,74 +21,46 @@ Decompose an issue into separate interface, development and testing documents th
 
 2. **Check for existing decomposition:**
    ```bash
-   test -f .claude/epics/*/$ARGUMENTS-interface.md && echo "⚠️ Interface guide already exists. Overwrite? (yes/no)"
-   test -f .claude/epics/*/$ARGUMENTS-dev.md && echo "⚠️ Development guide already exists. Overwrite? (yes/no)"
-   test -f .claude/epics/*/$ARGUMENTS-test.md && echo "⚠️ Testing guide already exists. Overwrite? (yes/no)"
+   test -f .claude/epics/*/$ARGUMENTS-interface.md && echo "⚠️ Decomposition already exists. Overwrite? (yes/no)"
    ```
 
 ## Instructions
 
 ### 1. Read Issue Context
 
-Get issue details from GitHub:
-
-```bash
-gh issue view $ARGUMENTS --json title,body,labels
-```
-
-Read local task file to understand:
+Read the local issue file to understand:
 
 - Technical requirements
 - Acceptance criteria
 - Dependencies
-- Effort estimate
+- Implementation details
 
-### 2. Analyze Development Requirements
+### 2. Generate Interface Code
 
-Break down the issue into concrete development tasks:
+Based on the issue requirements, create appropriate interface code files in the project directory:
 
-**Development Considerations:**
+**For TypeScript/JavaScript projects:**
 
-- What files need to be created/modified?
-- What components/functions need implementation?
-- What data models or schemas are needed?
-- What APIs or endpoints need to be built?
-- What UI components are required?
-- What configuration changes are needed?
+- Type definitions in `src/types/`
+- Interface contracts in `src/interfaces/`
+- API definitions in `src/api/`
 
-### 3. Analyze Interface Requirements
+**For other languages, follow project conventions:**
 
-Define the public API and contracts that will enable parallel development and testing:
+- Go: interface files in appropriate packages
+- Python: abstract base classes and protocols
+- Java: interface definitions
+- Rust: trait definitions
 
-**Interface Considerations:**
+**Code Generation Guidelines:**
 
-- What functions/methods need to be exposed?
-- What are the input/output types and schemas?
-- What are the expected behaviors and contracts?
-- What error conditions and handling are needed?
-- What data structures and models are involved?
-- What external dependencies and services are required?
+- Follow existing project patterns and naming conventions
+- Include proper imports and dependencies
+- Add type annotations where applicable
+- Include JSDoc or equivalent documentation comments
+- Ensure interfaces are complete and production-ready
 
-### 4. Analyze Testing Requirements
-
-Identify comprehensive testing needs:
-
-**Testing Considerations:**
-
-- Unit tests for new functions/methods
-- Integration tests for API endpoints
-- Component tests for UI elements
-- End-to-end tests for user workflows
-- Performance tests if applicable
-- Security tests if applicable
-- Data validation tests
-- Error handling tests
-
-### 5. Create Interface Guide and Implement Interface Code
-
-Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
-
-**CRITICAL: This step includes both documentation AND code implementation**
+### 3. Create Interface Documentation
 
 Create `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`:
 
@@ -96,272 +68,62 @@ Create `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`:
 ---
 issue: $ARGUMENTS
 title: { issue_title }
-type: interface
-decomposed: { current_datetime }
-estimated_hours: { interface_design_hours }
+created: { current_datetime }
+interface_files: { array_of_created_files }
 ---
 
-# Interface Guide: Issue #$ARGUMENTS
+# Interface Documentation: Issue #$ARGUMENTS
 
 ## Overview
 
-{Brief description of the interfaces and contracts that need to be defined}
+{Brief description of the interfaces and their purpose}
 
-## Prerequisites
+## Generated Code Files
 
-- [ ] Local task file reviewed: `.claude/epics/{epic_name}/$ARGUMENTS.md`
-- [ ] GitHub issue understood: `gh issue view $ARGUMENTS`
-- [ ] Existing codebase patterns analyzed
-- [ ] Dependencies and integration points identified
+### {File Path 1}
 
-## Interface Design Tasks
+**Purpose**: {What this interface/type/contract defines}
+**Key Methods/Properties**:
 
-### Core Interface Definitions
+- `{method_name}()`: {description}
+- `{property_name}`: {description}
 
-#### Interface 1: {Service/Component Name}
-
-**Description**: {What this interface does and why it's needed}
-**Files to create**:
-
-- `{file_path}` - {Interface definition file}
-- `{file_path}` - {Type definitions}
-
-**Interface Specification**:
+**Usage Example**:
 
 ```typescript
-// Function signatures
-export interface {InterfaceName} {
-  {method1}({params}): {ReturnType}
-  {method2}({params}): Promise<{ReturnType}>
-}
-
-// Data types
-export interface {DataType} {
-  {field1}: {type}
-  {field2}: {type}
-}
-
-// Error types
-export interface {ErrorType} {
-  code: string
-  message: string
-  details?: {DetailType}
-}
+// Example of how this interface would be used
 ```
 ````
 
-**Behavior Contract**:
+**Dependencies**: {List any dependencies this interface has}
 
-- **Input validation**: {validation rules}
-- **Output guarantees**: {what the function promises to return}
-- **Error conditions**: {when and how errors are thrown}
-- **Side effects**: {any state changes or external calls}
+### {File Path 2}
 
-**Dependencies**: {External interfaces or services required}
-**Estimated Hours**: {hours}
-**Priority**: High
+**Purpose**: {What this interface/type/contract defines}
+**Key Methods/Properties**:
 
-#### Interface 2: {Next Interface Name}
+- `{method_name}()`: {description}
+- `{property_name}`: {description}
 
-**Description**: {Interface description}
-**Files to create**:
-
-- `{file_path}` - {description}
-
-**Interface Specification**:
+**Usage Example**:
 
 ```typescript
-// Interface definitions
+// Example of how this interface would be used
 ```
 
-**Behavior Contract**:
+**Dependencies**: {List any dependencies this interface has}
 
-- {contract details}
+## Architecture Notes
 
-**Dependencies**: Interface 1
-**Estimated Hours**: {hours}
-**Priority**: High/Medium/Low
+{Brief explanation of how these interfaces fit into the overall system architecture}
 
-### Data Schema Definitions
+## Implementation Notes
 
-#### Schema 1: {Database/API Schema Name}
-
-**Description**: {Data structure definition}
-**Files to create**:
-
-- `{schema_file}` - {Zod/Prisma/etc schema definition}
-
-**Schema Definition**:
-
-```typescript
-// Data validation schema
-export const {SchemaName} = z.object({
-  {field1}: z.{type}(),
-  {field2}: z.{type}(),
-})
-
-export type {TypeName} = z.infer<typeof {SchemaName}>
-```
-
-**Validation Rules**:
-
-- {field validation rules}
-- {business logic constraints}
-- {format requirements}
-
-**Usage Context**: {Where this schema is used}
-**Estimated Hours**: {hours}
-**Priority**: High
-
-## Integration Contracts
-
-### External Service Interfaces
-
-#### External Service 1: {Service Name}
-
-**Description**: {Integration requirements}
-**Interface Requirements**:
-
-- **Endpoints**: {API endpoints to integrate with}
-- **Authentication**: {auth requirements}
-- **Data Format**: {expected input/output format}
-- **Error Handling**: {how to handle service errors}
-
-**Mock Requirements**: None (real service integration only)
-**Estimated Hours**: {hours}
-**Priority**: Medium
-
-## Interface Dependencies
-
-### Interface Creation Flow
-
-1. **Core Data Types**: Define fundamental data structures first
-2. **Service Interfaces**: Define method signatures and contracts
-3. **Integration Contracts**: Define external service interfaces
-4. **Error Handling**: Define comprehensive error types and handling
-
-### Parallel Development Enablement
-
-Once interfaces are defined, teams work simultaneously:
-
-- **Development Team**: Implements functions against defined interfaces (Red-Green-Refactor cycle)
-- **Testing Team**: Writes tests using interface contracts (tests initially fail until implementation)
-- **Integration Team**: Sets up service connections using interface contracts
-- **All Teams**: Coordinate through shared interface documentation, not through waiting
-
-## Definition of Done
-
-### Interface Design Complete When:
-
-- [ ] All function signatures defined with TypeScript types
-- [ ] Input/output contracts specified with validation rules
-- [ ] Error conditions and types clearly defined
-- [ ] Data schemas created with validation
-- [ ] Integration contracts specified for external services
-- [ ] Interface documentation is comprehensive
-- [ ] No mock interfaces - all definitions are for real implementations
-
-## Development Handoff
-
-**Development Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`
-**Testing Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-test.md`
-
-### Handoff Requirements:
-
-- Interface files created but functions only contain type signatures
-- All types exported and available for import
-- Documentation includes usage examples
-- Contract specifications are detailed and unambiguous
-
-## Interface Notes
-
-{Special considerations for interface design, breaking changes, backwards compatibility, etc.}
+{Any important notes about the implementation approach, design decisions, or constraints}
 
 ````
 
-#### 5.1. Implement Interface Code
-
-**CRITICAL: After creating the interface guide documentation, immediately implement the actual interface code files**
-
-For each interface file specified in the interface guide:
-
-1. **Read the interface specifications** from the just-created interface guide
-2. **Create the actual TypeScript interface files** with:
-   - All interface definitions from the specifications
-   - All type definitions and exports
-   - All Zod validation schemas
-   - Function signatures (empty implementations - just signatures)
-   - Error type definitions
-   - All exports properly defined
-
-3. **Follow these implementation rules**:
-   - **NO IMPLEMENTATION LOGIC** - only type signatures, interfaces, and schemas
-   - All functions should have type signatures but empty implementations: `throw new Error("Not implemented")`
-   - All interfaces must be exported
-   - All types must be exported
-   - All schemas must be exported and validated
-   - File structure must match exactly what's specified in the interface guide
-
-4. **Validate the interface implementation**:
-   - Ensure all files compile without TypeScript errors
-   - Ensure all exports are accessible
-   - Ensure Zod schemas validate correctly
-   - Run type checking: `cd ai-info && pnpm tsc --noEmit`
-
-5. **Commit the interface implementation**:
-   ```bash
-   git add .
-   git commit -m "Issue #$ARGUMENTS[interface]: Define contracts and type signatures
-
-   🤖 Generated with [Claude Code](https://claude.ai/code)
-
-   Co-Authored-By: Claude <noreply@anthropic.com>"
-   ```
-
-**Example Implementation Structure**:
-For interface guide specifying `ai-info/src/services/rss/types.ts`:
-
-```typescript
-// Feed format detection
-export type FeedFormat = "rss" | "atom" | "unknown";
-
-// Normalized article output structure
-export interface ParsedArticle {
-  title: string;
-  description: string | null;
-  link: string;
-  publishedAt: Date | null;
-  author: string | null;
-  guid: string | null;
-  content: string | null;
-}
-
-// Parser service interface
-export interface RSSParserService {
-  parseFeed(xmlContent: string): Promise<ParsedFeedResult>;
-  detectFeedFormat(xmlContent: string): FeedFormat;
-  validateFeed(xmlContent: string): FeedValidationResult;
-}
-
-// Implementation placeholder
-export class RSSParser implements RSSParserService {
-  async parseFeed(xmlContent: string): Promise<ParsedFeedResult> {
-    throw new Error("Not implemented");
-  }
-
-  detectFeedFormat(xmlContent: string): FeedFormat {
-    throw new Error("Not implemented");
-  }
-
-  validateFeed(xmlContent: string): FeedValidationResult {
-    throw new Error("Not implemented");
-  }
-}
-```
-
-### 6. Create Development Guide
-
-Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
+### 4. Create Development Guide
 
 Create `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`:
 
@@ -369,416 +131,311 @@ Create `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`:
 ---
 issue: $ARGUMENTS
 title: { issue_title }
-type: development
-decomposed: { current_datetime }
-estimated_hours: { development_hours }
-status: pending
+role: developer
+created: { current_datetime }
+interface_ref: $ARGUMENTS-interface.md
 ---
 
 # Development Guide: Issue #$ARGUMENTS
 
-## Overview
+## Task Overview
 
-{Brief description of what needs to be developed}
+{Clear description of what needs to be implemented}
 
-## Prerequisites
+## Interface Contracts
 
-- [ ] Local task file reviewed: `.claude/epics/{epic_name}/$ARGUMENTS.md`
-- [ ] Interface specifications defined: `.claude/epics/{epic_name}/$ARGUMENTS-interface.md`
-- [ ] **Interface code already implemented**: Type signatures and empty implementations available
-- [ ] GitHub issue understood: `gh issue view $ARGUMENTS`
-- [ ] Development environment set up
-- [ ] Interface contracts available for implementation
+Refer to `$ARGUMENTS-interface.md` for:
+- Type definitions and interfaces
+- Method signatures
+- Data structures
+- API contracts
 
-## Development Task List
+## Implementation Tasks
 
-### Core Implementation Tasks
+### 1. Core Implementation
 
-#### Task 1: {Task Name}
+**Files to Create/Modify**:
+- `{file_path}`: {description of changes needed}
+- `{file_path}`: {description of changes needed}
 
-**Description**: {What needs to be implemented}
-**Files to modify/create**:
+**Key Functions to Implement**:
+- `{function_name}()`: {description and requirements}
+- `{function_name}()`: {description and requirements}
 
-- `{file_path}` - {description of changes}
-- `{file_path}` - {description of changes}
+### 2. Integration Points
 
-**Context needed**:
+**Database Layer**:
+- {Specific database changes needed}
+- {Migration requirements}
 
-- {Understanding of existing patterns}
-- {Dependencies on other components}
-- {Configuration requirements}
+**API Layer**:
+- {Endpoint implementations needed}
+- {Middleware or validation requirements}
 
-**Estimated Hours**: {hours}
-**Priority**: High/Medium/Low
-**Dependencies**: {none or list dependencies}
+**UI Layer** (if applicable):
+- {Component implementations}
+- {State management changes}
 
-#### Task 2: {Task Name}
+### 3. Configuration and Setup
 
-**Description**: {What needs to be implemented}
-**Files to modify/create**:
+{Any configuration changes, environment variables, or setup requirements}
 
-- `{file_path}` - {description of changes}
+## Implementation Guidelines
 
-**Context needed**:
+### Code Standards
+- Follow existing project conventions
+- Use interfaces defined in the interface documentation
+- Ensure proper error handling
+- Add logging where appropriate
 
-- {Required knowledge}
-- {Integration points}
+### Performance Considerations
+{Any performance requirements or considerations}
 
-**Estimated Hours**: {hours}
-**Priority**: High/Medium/Low
-**Dependencies**: Task 1
+### Security Considerations
+{Any security requirements or considerations}
 
-### Configuration & Setup Tasks
+## Dependencies
 
-#### Task 3: {Configuration Task}
+### Internal Dependencies
+{List any internal modules or components this depends on}
 
-**Description**: {Configuration changes needed}
-**Files to modify/create**:
+### External Dependencies
+{List any new packages or external services needed}
 
-- `{config_file}` - {changes needed}
+## Acceptance Criteria
 
-**Context needed**:
-
-- {Current configuration structure}
-- {Environment considerations}
-
-**Estimated Hours**: {hours}
-**Priority**: Medium
-**Dependencies**: {none or list}
-
-## Task Dependencies
-
-### Development Task Flow
-
-1. {Task order and dependencies}
-2. {Sequential requirements}
-3. {Parallel opportunities}
+{Copy from original issue and make more specific for implementation}
 
 ## Definition of Done
 
-### Development Tasks Complete When:
-
-- [ ] Code implemented and follows existing patterns
-- [ ] Code reviewed and meets quality standards
-- [ ] Documentation updated if needed
-- [ ] No lint/type errors
-- [ ] Basic functionality verified
-- [ ] Ready for testing (see companion testing guide)
-
-## Testing Coordination
-
-- **Testing Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-test.md`
-- **Test-Driven Development**: Tests can be written based on specifications, not implementation
-- **Parallel Work**: Testing and development can proceed simultaneously once API interfaces are defined
-- **Continuous Integration**: Tests provide immediate feedback during development
-
-## Development Notes
-
-{Special considerations, warnings, or recommendations for development implementation}
-
-## Handoff to Testing
-
-When development tasks are complete:
-
-1. Notify testing team that implementation is ready
-2. Provide build/deployment instructions if needed
-3. Share any implementation details that affect testing
-4. Review testing guide together if needed
+- [ ] All interface contracts implemented
+- [ ] Code follows project standards
+- [ ] Error handling implemented
+- [ ] Logging added where appropriate
+- [ ] Integration tests pass
+- [ ] Performance requirements met
+- [ ] Security requirements met
+- [ ] Code reviewed and approved
 ````
 
-### 7. Create Testing Guide
+### 5. Create Testing Guide
 
 Create `.claude/epics/{epic_name}/$ARGUMENTS-test.md`:
 
-```markdown
+````markdown
 ---
 issue: $ARGUMENTS
 title: { issue_title }
-type: testing
-decomposed: { current_datetime }
-estimated_hours: { testing_hours }
-status: pending
+role: tester
+created: { current_datetime }
+interface_ref: $ARGUMENTS-interface.md
+dev_ref: $ARGUMENTS-dev.md
 ---
 
 # Testing Guide: Issue #$ARGUMENTS
 
-## Overview
+## Testing Overview
 
-{Brief description of what needs to be tested}
+{Description of what needs to be tested}
 
-## Prerequisites
+## Interface Contracts
 
-- [ ] Interface contracts defined: `.claude/epics/{epic_name}/$ARGUMENTS-interface.md` (function signatures & behavior)
-- [ ] Development specifications understood: `.claude/epics/{epic_name}/$ARGUMENTS-dev.md` (implementation approach)
-- [ ] Testing strategy aligned with interface contracts
-- [ ] Test environment set up (independent of development completion)
-- [ ] Testing frameworks/tools available
+Refer to `$ARGUMENTS-interface.md` for:
 
-## Testing Strategy
+- Expected method signatures
+- Input/output specifications
+- Data structure requirements
+- Error handling contracts
 
-### Testing Levels
+## Test Strategy
 
-- **Unit Tests**: Individual functions and methods
-- **Integration Tests**: Component interactions and API endpoints
-- **End-to-End Tests**: Complete user workflows
-- **Performance Tests**: (if applicable)
-- **Security Tests**: (if applicable)
+### 1. Unit Tests
 
-## Testing Task List
+**Test Files to Create**:
 
-### Unit Testing Tasks
+- `{test_file_path}`: {description of what to test}
+- `{test_file_path}`: {description of what to test}
 
-#### Test 1: {Component/Function Name} Unit Tests
+**Key Test Cases**:
 
-**Description**: Test individual functions and methods
-**Test files to create/modify**:
+#### {Function/Component Name}
 
-- `{test_file_path}` - {description of test coverage}
+- **Happy Path**: {description}
+- **Edge Cases**: {list specific edge cases}
+- **Error Cases**: {list error conditions to test}
+- **Input Validation**: {validation rules to test}
 
-**Context needed**:
+#### {Function/Component Name}
 
-- {Understanding of function behavior}
-- {Edge cases to test}
-- {Mock requirements}
+- **Happy Path**: {description}
+- **Edge Cases**: {list specific edge cases}
+- **Error Cases**: {list error conditions to test}
+- **Input Validation**: {validation rules to test}
 
-**Test scenarios**:
+### 2. Integration Tests
 
-- Happy path scenarios
-- Edge cases
-- Error conditions
-- Boundary conditions
+**Integration Points to Test**:
 
-**Estimated Hours**: {hours}
-**Priority**: High
-**Dependencies**: Function signatures and expected behavior defined (tests will initially fail until implementation)
+- {Description of integration with other components}
+- {Database interaction tests}
+- {API endpoint tests}
+- {Third-party service integration}
 
-#### Test 2: {Next Component} Unit Tests
+**Test Scenarios**:
 
-**Description**: {Test description}
-**Test files to create/modify**:
+- {End-to-end workflow tests}
+- {Cross-component interaction tests}
+- {Data flow validation tests}
 
-- `{test_file_path}` - {coverage description}
+### 3. Performance Tests
 
-**Context needed**:
+**Performance Requirements** (from dev guide):
 
-- {Required knowledge}
-- {Dependencies}
+- {Performance benchmarks to validate}
+- {Load testing requirements}
+- {Response time requirements}
 
-**Test scenarios**:
+### 4. Security Tests
 
-- {scenario list}
+**Security Requirements** (from dev guide):
 
-**Estimated Hours**: {hours}
-**Priority**: High/Medium/Low
-**Dependencies**: Expected interface behavior defined (tests validate implementation against specifications)
-
-### Integration Testing Tasks
-
-#### Test 3: {API/Component} Integration Tests
-
-**Description**: Test component interactions
-**Test files to create/modify**:
-
-- `{test_file_path}` - {integration scenarios}
-
-**Context needed**:
-
-- {API contracts}
-- {Data flow understanding}
-- {Service dependencies}
-
-**Test scenarios**:
-
-- {scenario 1}
-- {scenario 2}
-- {error scenarios}
-
-**Estimated Hours**: {hours}
-**Priority**: High
-**Dependencies**: Component implementations available for real integration testing
-
-### End-to-End Testing Tasks
-
-#### Test 4: {User Workflow} E2E Tests
-
-**Description**: Test complete user workflows
-**Test files to create/modify**:
-
-- `{e2e_test_path}` - {user journey tests}
-
-**Context needed**:
-
-- {User workflow understanding}
-- {UI element selectors}
-- {Test environment setup}
-
-**Test scenarios**:
-
-- {complete user journey}
-- {alternative paths}
-- {error recovery}
-
-**Estimated Hours**: {hours}
-**Priority**: Medium
-**Dependencies**: Full feature implementation completed and deployed to test environment
-
-## Testing Dependencies
-
-### Testing Task Flow
-
-1. **Test-First Approach**: Unit tests written from specifications (will fail until implementation exists)
-2. **Red-Green-Refactor Cycle**: Tests fail (red) → implementation makes them pass (green) → refactor code
-3. **Integration Testing**: Requires actual component implementations to test real interactions
-4. **E2E Validation**: Requires fully implemented features for complete workflow testing
-5. **Performance/Security**: Requires stable implementations for meaningful validation
-
-### Parallel Testing Opportunities
-
-- **Interface-Based Testing**: Unit tests written from specifications, not implementations
-- **Test Case Design**: Write test logic based on specifications before implementation exists
-- **Test Infrastructure**: Setup testing frameworks and CI/CD pipelines immediately
-- **Test Data Preparation**: Create real test databases and fixtures independently
-- **Continuous Feedback**: Tests provide real-time validation during development
+- {Authentication/authorization tests}
+- {Input sanitization tests}
+- {Data privacy tests}
 
 ## Test Data Requirements
 
+### Mock Data
+
+{Describe what mock data is needed}
+
 ### Test Fixtures
 
-- {List of test data needed}
-- {Sample data files}
-- {Database setup requirements}
+{Describe any test fixtures or setup data needed}
 
-### Real Service Dependencies
+### External Service Mocking
 
-- {External services required for testing}
-- {API endpoints that need to be functional}
-- {Service setup requirements for test environment}
+{Describe what external services need to be mocked and how}
 
-## Definition of Done
+## Test Environment Setup
 
-### Testing Tasks Complete When:
+### Prerequisites
 
-- [ ] All test scenarios implemented
-- [ ] Tests pass consistently
-- [ ] Code coverage meets requirements
-- [ ] Edge cases covered
-- [ ] Error scenarios tested
-- [ ] Performance requirements verified (if applicable)
-- [ ] Security requirements verified (if applicable)
-- [ ] Test documentation updated
+{List any setup requirements for testing}
 
-## Testing Notes
+### Test Configuration
 
-{Special considerations, warnings, or recommendations for testing implementation}
+{Any special configuration needed for tests}
 
-## Development Coordination
+### Database Setup
 
-- **Development Guide**: `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`
-- **Communication**: Regular sync with development team on progress
-- **Blocking Issues**: Process for handling test-blocking development issues
-```
+{Any database setup or migration requirements for tests}
 
-### 8. Commit Dev and Test Guides
+## Test Execution
 
-After creating both the development and testing guide files, commit them:
+### Running Tests
 
 ```bash
-git add .claude/epics/*/$ARGUMENTS-dev.md .claude/epics/*/$ARGUMENTS-test.md
-git commit -m "Issue #$ARGUMENTS[decompose]: Add dev and test guides
+# Commands to run different types of tests
+npm test                    # All tests
+npm run test:unit          # Unit tests only
+npm run test:integration   # Integration tests only
+npm run test:e2e          # End-to-end tests
+```
+````
 
-Development guide: $ARGUMENTS-dev.md
-Testing guide: $ARGUMENTS-test.md
+### Test Coverage Requirements
+
+- Minimum coverage: 80%
+- Critical paths: 100% coverage
+- Error handling: 100% coverage
+
+## Acceptance Testing
+
+### Manual Testing Checklist
+
+- [ ] {User workflow 1}
+- [ ] {User workflow 2}
+- [ ] {Error scenario 1}
+- [ ] {Error scenario 2}
+- [ ] {Performance requirement validation}
+- [ ] {Security requirement validation}
+
+### Automated Testing Checklist
+
+- [ ] All unit tests pass
+- [ ] All integration tests pass
+- [ ] Performance tests pass
+- [ ] Security tests pass
+- [ ] Code coverage meets requirements
+
+## Test Reporting
+
+### Test Results Documentation
+
+{How to document and report test results}
+
+### Bug Reporting
+
+{Process for reporting bugs found during testing}
+
+### Performance Metrics
+
+{How to capture and report performance metrics}
+
+## Definition of Done (Testing)
+
+- [ ] All test cases implemented and passing
+- [ ] Test coverage requirements met
+- [ ] Performance requirements validated
+- [ ] Security requirements validated
+- [ ] Integration tests confirm interface contracts
+- [ ] Manual acceptance testing completed
+- [ ] Test documentation updated
+- [ ] Test results documented and approved
+
+````
+
+### 6. Commit Changes
+
+After creating all files, commit them:
+
+```bash
+git add .claude/epics/*/$ARGUMENTS-interface.md .claude/epics/*/$ARGUMENTS-dev.md .claude/epics/*/$ARGUMENTS-test.md
+# Add any generated code files
+git add src/
+git commit -m "Issue #$ARGUMENTS[decompose]: Add interface code, dev and test guides
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-```
+````
 
-### 9. Validate Decomposition
-
-Ensure:
-
-- **Interface contracts** are complete with clear function signatures and behavior specifications
-- **Development work** is broken into concrete tasks that implement against interfaces
-- **Testing coverage** is comprehensive and tests interface contracts, not implementations
-- **File paths** are specific and accurate across all three guides
-- **Context requirements** are detailed for independent execution
-- **Time estimates** are reasonable for each phase (interface → parallel dev+test)
-- **Dependencies** are clear with proper interface-first sequencing
-
-### 10. Output
+### 7. Output
 
 ```
-✅ Decomposition complete for issue #$ARGUMENTS
+✅ Issue #$ARGUMENTS decomposed successfully
 
-🔌 Interface Guide: .claude/epics/{epic_name}/$ARGUMENTS-interface.md
-   Interface Tasks: {count}
-   Estimated hours: {interface_hours}h
+Created files:
+  📋 $ARGUMENTS-interface.md  (Interface documentation and code index)
+  🛠️  $ARGUMENTS-dev.md       (Development implementation guide)
+  🧪 $ARGUMENTS-test.md      (Testing strategy and guide)
 
-📋 Development Guide: .claude/epics/{epic_name}/$ARGUMENTS-dev.md
-   Development Tasks: {count}
-   Estimated hours: {dev_hours}h
+Generated interface code files:
+  {list of actual code files created}
 
-🧪 Testing Guide: .claude/epics/{epic_name}/$ARGUMENTS-test.md
-   Testing Tasks: {count}
-   Estimated hours: {test_hours}h
-
-Total estimated effort: {total_hours}h
-
-Key interfaces to be defined:
-  {list main interfaces}
-
-Key files to be modified:
-  {list main files}
-
-Execution Order:
-1. **Phase 1 - Interface Definition**: Define contracts and type signatures first
-2. **Phase 2 - Parallel Development**: Once interfaces are defined:
-   - Development team: Implement against defined interfaces
-   - Testing team: Write tests using interface contracts (simultaneously)
-3. **Coordination**: All teams sync through shared interface documentation
+Next steps:
+  - Review interface contracts in $ARGUMENTS-interface.md
+  - Start development with $ARGUMENTS-dev.md
+  - Plan testing approach with $ARGUMENTS-test.md
+  - Use /pm:issue-start $ARGUMENTS to begin implementation
 ```
 
 ## Important Notes
 
-### TDD and Testing Philosophy
-
-- **No Mock Services**: All tests use real services and real data - no mocking allowed
-- **Test-First Development**: Unit tests can be written before implementation based on specifications
-- **Red-Green-Refactor**: Tests initially fail (red), implementation makes them pass (green), then refactor
-- **Real Dependencies**: Integration and E2E tests require actual implementations and services
-
-### Agent Independence
-
-- **Separate Agent Execution**: Use different Claude agents for dev and test work to avoid cross-contamination
-- **Interface-Only Coordination**: Agents communicate only through shared interface contracts, not implementation details
-- **No Context Sharing**: Dev agents don't see test code, test agents don't see implementation code
-- **Prevent Overfitting**: Independent execution ensures tests truly validate behavior, not implementation specifics
-
-### Document Coordination
-
-- **Three separate documents** enable parallel interface, development and testing work
-- **Interface guide** defines contracts, types, and behavior specifications
-- **Development guide** focuses on implementation tasks against defined interfaces
-- **Testing guide** focuses on verification and validation using interface contracts and real systems
-- All documents are local only - not synced to GitHub
-- Documents cross-reference each other for coordination
-- Teams can work independently while maintaining alignment through shared interface contracts
-
-### Task Requirements
-
-- Focus on concrete, actionable tasks with clear deliverables
-- Include sufficient context for each task to be executed independently
-- Consider both happy path and error scenarios in testing
-- Specify real service dependencies and setup requirements
-
-### Execution Recommendations
-
-- **Use `/pm:issue-work` command**: Execute the complete interface-first development workflow:
-  - `/pm:issue-work {issue_number}` - Complete implementation with interface-first parallel dev/test
-- **Automatic Workflow**: The command automatically handles:
-  - Phase 1: Interface contract definition and commit
-  - Phase 2: Parallel development and testing in separate worktrees with independent agents
-  - Phase 3: Integration testing and final merge
-- **Agent Isolation**: Built-in agent separation prevents cross-contamination between dev and test work
-- **Interface-First Development**: Contracts are defined first, then parallel implementation ensures consistency
+- Interface files contain only code file indexes and brief descriptions
+- No code content is stored in interface documentation
+- Generated code files follow existing project patterns
+- Dev and test guides reference interface documentation
+- All files are committed together for traceability
+- Focus on creating complete, production-ready interfaces
