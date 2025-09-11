@@ -132,6 +132,7 @@ Create `.claude/epics/{epic_name}/$ARGUMENTS-dev.md`:
 issue: $ARGUMENTS
 title: { issue_title }
 role: developer
+status: pending
 created: { current_datetime }
 interface_ref: $ARGUMENTS-interface.md
 ---
@@ -227,6 +228,7 @@ Create `.claude/epics/{epic_name}/$ARGUMENTS-test.md`:
 issue: $ARGUMENTS
 title: { issue_title }
 role: tester
+status: pending
 created: { current_datetime }
 interface_ref: $ARGUMENTS-interface.md
 dev_ref: $ARGUMENTS-dev.md
