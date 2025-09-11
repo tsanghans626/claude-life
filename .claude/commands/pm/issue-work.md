@@ -233,17 +233,17 @@ gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress" || true
 #### Commit and Status Update
 
 ```bash
+# Update status in dev.md file
+sed -i '' 's/^status: .*/status: completed/' "$REQUIRED_FILE"
+
+echo "✅ Development implementation completed and status updated"
+
 git add .
 git commit -m "Issue #$ISSUE_NUMBER[dev]: Implementation complete
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-
-# Update status in dev.md file
-sed -i '' 's/^status: .*/status: completed/' "$REQUIRED_FILE"
-
-echo "✅ Development implementation completed and status updated"
 ```
 
 ### Type: test
@@ -283,17 +283,16 @@ gh issue edit $ISSUE_NUMBER --add-assignee @me --add-label "in-progress" || true
 #### Commit and Status Update
 
 ```bash
+# Update status in test.md file
+sed -i '' 's/^status: .*/status: completed/' "$REQUIRED_FILE"
+
+echo "✅ Test cases completed and status updated"
 git add .
 git commit -m "Issue #$ISSUE_NUMBER[test]: Test suite complete
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-
-# Update status in test.md file
-sed -i '' 's/^status: .*/status: completed/' "$REQUIRED_FILE"
-
-echo "✅ Test cases completed and status updated"
 ```
 
 ### Type: review
