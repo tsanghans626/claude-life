@@ -59,6 +59,8 @@ Based on the issue requirements, create appropriate interface code files in the 
 - Add type annotations where applicable
 - Include JSDoc or equivalent documentation comments
 - Ensure interfaces are complete and production-ready
+- **NEVER create mock services or interfaces - all code must be production-ready**
+- **NO MOCK DATA - use real data structures and implementations only**
 
 ### 3. Create Interface Documentation
 
@@ -188,6 +190,8 @@ Refer to `$ARGUMENTS-interface.md` for:
 - Use interfaces defined in the interface documentation
 - Ensure proper error handling
 - Add logging where appropriate
+- **NO MOCK SERVICES**: Implement real services and integrations only
+- **NO MOCK DATA**: Use actual data structures, not placeholder/mock data
 
 ### Performance Considerations
 {Any performance requirements or considerations}
@@ -307,17 +311,21 @@ Refer to `$ARGUMENTS-interface.md` for:
 
 ## Test Data Requirements
 
-### Mock Data
+### **CRITICAL: NO MOCK SERVICES OR DATA**
 
-{Describe what mock data is needed}
+**This project follows a strict NO MOCK policy:**
+
+- **NO mock services** - use real service implementations
+- **NO mock data** - use real data structures and actual test data
+- **NO external service mocking** - integrate with real services or use test environments
 
 ### Test Fixtures
 
-{Describe any test fixtures or setup data needed}
+{Describe any **real** test fixtures or setup data needed - must be actual production-like data}
 
-### External Service Mocking
+### Service Integration
 
-{Describe what external services need to be mocked and how}
+{Describe how to use real services in test environment - configuration, test instances, etc.}
 
 ## Test Environment Setup
 
@@ -441,3 +449,5 @@ Next steps:
 - Dev and test guides reference interface documentation
 - All files are committed together for traceability
 - Focus on creating complete, production-ready interfaces
+- **ABSOLUTE PROHIBITION**: Never create mock services, mock data, or mock implementations
+- **REAL IMPLEMENTATIONS ONLY**: All generated code must be production-ready and functional
