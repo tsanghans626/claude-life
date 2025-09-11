@@ -678,7 +678,23 @@ status: pending
 - **Blocking Issues**: Process for handling test-blocking development issues
 ```
 
-### 8. Validate Decomposition
+### 8. Commit Dev and Test Guides
+
+After creating both the development and testing guide files, commit them:
+
+```bash
+git add .claude/epics/*/$ARGUMENTS-dev.md .claude/epics/*/$ARGUMENTS-test.md
+git commit -m "Issue #$ARGUMENTS[decompose]: Add dev and test guides
+
+Development guide: $ARGUMENTS-dev.md
+Testing guide: $ARGUMENTS-test.md
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### 9. Validate Decomposition
 
 Ensure:
 
@@ -690,7 +706,7 @@ Ensure:
 - **Time estimates** are reasonable for each phase (interface → parallel dev+test)
 - **Dependencies** are clear with proper interface-first sequencing
 
-### 9. Output
+### 10. Output
 
 ```
 ✅ Decomposition complete for issue #$ARGUMENTS
